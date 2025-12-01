@@ -29,6 +29,8 @@ float shoulder_theta =  0; // theta1
 float elbow_theta =     0; // theta2
 float wrist_theta =     0; // theta3
 
+String inputBuffer = "";
+
 bool inverseKinematics(float x, float y, float phi, float &theta1, float &theta2, float &theta3) { // ! requires live test
   // Wrist position
   float wristX = x - L3 * cos(phi);
@@ -141,6 +143,49 @@ void movementStepper(int servo_ch, int current_angle, int target_angle) { // !! 
     return;
   }
 }
+
+void readSerial() {
+  char c = Serial.read();
+
+  if (c == '<') {
+    inputBuffer = "";       // Start new frame
+  } 
+  else if (c == '>') {
+    processMessage(inputBuffer);
+  } 
+  else {
+    inputBuffer += c;
+  }
+}
+
+void processMessage(String msg) {
+  int sep = msg.indexOf('|');
+  String command = msg.substring(0, sep);
+  String value   = msg.substring(sep + 1);
+
+  if (command == "SET_MODE") {
+    if (value == "BLINK") {
+      currentMode = LED_BLINK;
+      Serial.println("<ACK|MODE_BLINK>");
+    } 
+    else if (value == "OFF") {
+      currentMode = LED_OFF;
+      Serial.println("<ACK|MODE_OFF>");
+    } 
+    else {
+      Serial.println("<ERR|INVALID_MODE>");
+    }
+  }
+  
+  else if (command == "PING") {
+    Serial.println("<PONG|0>");
+  }
+
+  else {
+    Serial.println("<ERR|UNKNOWN_CMD>");
+  }
+}
+
 
 void loop() {
 
