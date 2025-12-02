@@ -14,6 +14,9 @@ Adafruit_PWMServoDriver pca = Adafruit_PWMServoDriver();
 #define L3              6.0
 
 #define LED             3 // digital pin
+#define STEP_PIN 6
+#define DIR_PIN 5
+#define EN_PIN 7
 
 bool err =              false;
 // Tracks current angle pos
@@ -68,6 +71,11 @@ bool inverseKinematics(float x, float y, float phi, float &theta1, float &theta2
 
 void setup() {
   pinMode(LED, OUTPUT);
+  pinMode(STEP_PIN, OUTPUT);
+  pinMode(DIR_PIN, OUTPUT);
+  pinMode(EN_PIN, OUTPUT);
+
+  digitalWrite(EN_PIN, LOW);  // Enable driver
   
   Serial.begin(9600);
 
@@ -165,11 +173,11 @@ void processMessage(String msg) {
 
   if (command == "SET_MODE") {
     if (value == "BLINK") {
-      currentMode = LED_BLINK;
+      //currentMode = LED_BLINK;
       Serial.println("<ACK|MODE_BLINK>");
     } 
     else if (value == "OFF") {
-      currentMode = LED_OFF;
+      //currentMode = LED_OFF;
       Serial.println("<ACK|MODE_OFF>");
     } 
     else {
@@ -189,15 +197,27 @@ void processMessage(String msg) {
 
 void loop() {
 
+  digitalWrite(DIR_PIN, HIGH);
+
+  // rotate a bit
+  for (int i = 0; i < 200; i++) {
+    digitalWrite(STEP_PIN, HIGH);
+    delayMicroseconds(800);
+    digitalWrite(STEP_PIN, LOW);
+    delayMicroseconds(800);
+  }
+
+  delay(1000);
+
   // inverse kinematics requires test
   // movementStepper requires test
-  moveBase(70);
+  //moveBase(70);
   //delay(5000);
 
   // Check for the inversed motor
-  pca.setPWM(2, 0, angleToPulse(40));  // 165 ~ 0
-  pca.setPWM(3, 0, angleToPulse(130));  // 165 ~ 0
-  pca.setPWM(4, 0, angleToPulse(90));
-  pca.setPWM(5, 0, angleToPulse(0));
+  //pca.setPWM(2, 0, angleToPulse(40));  // 165 ~ 0
+  //pca.setPWM(3, 0, angleToPulse(130));  // 165 ~ 0
+  //pca.setPWM(4, 0, angleToPulse(90));
+  //pca.setPWM(5, 0, angleToPulse(0));
 
 }
