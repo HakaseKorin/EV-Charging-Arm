@@ -477,8 +477,7 @@ void loop() {
   
   while (true){
     maintain_servo();
-    //bool inverseKinematics(float x, float y, float phi_deg,
-    //                   float &theta1_deg, float &theta2_deg, float &theta3_deg)
-
+    readSerial();
+    delay(3000);
   }
 }
