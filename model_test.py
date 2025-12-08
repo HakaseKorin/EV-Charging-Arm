@@ -7,4 +7,4 @@ home_dir = os.environ["HOME"]
 model = YOLO(r"ev_socket_model.pt")
 
 # Run inference with boxes automatically drawn & saved
-results = model("test02.jpg", name=f"{home_dir}/EV-Charging-Arm")
+results = model("current.jpg", name=f"{home_dir}/EV-Charging-Arm")
