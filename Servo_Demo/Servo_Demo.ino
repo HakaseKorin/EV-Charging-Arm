@@ -469,8 +469,8 @@ void loop() {
   init_servo();
   delay(5000);
   
-  default_servo();
-  delay(5000);
+  //default_servo();
+  //delay(5000);
   //baseRotation(10); // rotating shoulder
   //delay(10000);
   // moves towards 00, cant move if arm is extended outwards?
