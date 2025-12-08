@@ -439,13 +439,14 @@ void init_servo() {
 }
 
 void default_servo() { // 01-50,2-40,3-140,5-90 >> Default pose.
-  movementStepper(1,50);
-  movementStepper(2,20);
+  //movementStepper(1,50);
+  //movementStepper(2,20);
   //movementStepper(3,160); // Servo becomes inactive after using this function
-  wrist_vert = 165;
-  pca.setPWM(3, 0, angleToPulse(wrist_vert));
+  moveArmSimultaneous(50,20,165,90);
+  //wrist_vert = 165;
+  //pca.setPWM(3, 0, angleToPulse(wrist_vert));
   //movementStepper(4,90);
-  movementStepper(5,90);
+  //movementStepper(5,90);
 }
 
 void maintain_servo() {
@@ -474,7 +475,7 @@ void loop() {
   //delay(10000);
   // moves towards 00, cant move if arm is extended outwards?
 
-  thrustForward();
+  //thrustForward();
 
   // inverse kinematics conclusion, coordinates.. are really weird??
   /*Serial.println("starting kinematics");

@@ -93,7 +93,7 @@ while True:
         cmd = parts[0]
         value = " ".join(parts[1:]) if len(parts) > 1 else ""
         if value == "SCAN":
-            cmd == "SCAN"
+            cmd = "SCAN"
             value = scan()
         send(cmd, value)
     except Exception as e:
