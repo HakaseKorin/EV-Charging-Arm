@@ -7,7 +7,7 @@ Coord = Union[Tuple[int,int], Tuple[float,float]]
 def draw_crosshair_cv(
     img: np.ndarray,
     center: Optional[Coord] = None,
-    color: Tuple[int,int,int] = (0, 255, 0),
+    color: Tuple[int,int,int] = (255, 0, 0),
     size: int = 20,
     thickness: int = 2,
     relative: bool = False,
