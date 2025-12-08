@@ -19,4 +19,15 @@ model = YOLO(r"ev_socket_model.pt")
 print("Finding Socket..")
 
 # Run inference with boxes automatically drawn & saved
-results = model("current.jpg", save=True, name="outpu")
+results = model("current.jpg", save=True, name=".")
+
+for result in results:
+    # Access the Boxes object
+    boxes = result.boxes
+    
+    # Check if any objects were detected
+    if len(boxes) > 0:
+        print(True)
+    else:
+        print(False)
+        

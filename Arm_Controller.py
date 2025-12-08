@@ -1,11 +1,29 @@
+from ultralytics import YOLO
+from picamera2 import Picamera2
+import os
 import serial # pip install pyserial
 import time
+
+home_dir = os.environ["HOME"]
+cam = Picamera2()
+config = cam.create_still_configuration()
+cam.configure(config)
 
 ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 time.sleep(2)
 
 input_buffer = ""
 reading_frame = False
+
+def send(cmd, value):
+    msg = f"<{cmd}|{value}>"
+    ser.write(msg.encode())
+    print("Sent:", msg)
+
+def read_messages():
+    while ser.in_waiting:
+        line = ser.readline().decode().strip()
+        print("Arduino:", line)
 
 def read_serial():
     global input_buffer, reading_frame
@@ -35,22 +53,35 @@ def process_message(msg):
     print("Command:", command)
     print("Value:  ", value)
 
-    if command === "REQ":
-        # do scan if found respond true, else false
-        send(f"ACK {SCAN}", value)
+    if command == "REQ":
+        
+        cam.start()
+        print("Taking Picture..")
+        time.sleep(2)
+        cam.capture_file(f"{home_dir}/EV-Charging-Arm/current.jpg")
+        print("Saved Picture")
+
+        # Load trained model
+        model = YOLO(r"ev_socket_model.pt")
+        print("Finding Socket..")
+
+        # Run inference with boxes automatically drawn & saved
+        results = model("current.jpg", save=True, name=".")
+
+        for result in results:
+            # Access the Boxes object
+            boxes = result.boxes
+    
+            # Check if any objects were detected
+            if len(boxes) > 0:
+                value = "TRUE"
+            else:
+                value = "FALSE"
+
+        send(f"SCAN", value)
 
     # Example: respond back to Arduino
     send(f"ACK {command}", value)
-
-def send(cmd, value):
-    msg = f"<{cmd}|{value}>"
-    ser.write(msg.encode())
-    print("Sent:", msg)
-
-def read_messages():
-    while ser.in_waiting:
-        line = ser.readline().decode().strip()
-        print("Arduino:", line)
 
 while True:
     user_input = input("Command: ").strip()

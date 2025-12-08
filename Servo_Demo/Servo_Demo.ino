@@ -352,6 +352,19 @@ void processMessage(String msg) {
       return;
     } 
   }
+  if (command == "SCAN") {
+    if (value == "TRUE") {
+      thrustForward();
+      Serial.println("Socket Detected..")
+      Serial.println("<ACK|SCAN>");
+      return;
+    }
+    if (value == "FALSE") {
+      Serial.println("No Socket Detected..")
+      Serial.println("<ACK|SCAN>");
+      return;
+    } 
+  }
   if (command == "STATE") {
     if (value == "RESET") {
       default_servo();
@@ -359,7 +372,7 @@ void processMessage(String msg) {
       return;
     }
     if (value == "SCAN") {
-      Serial.println("<ACK|SCAN>");
+      Serial.println("<REQ|SCAN>");
       return;
     }
   }
