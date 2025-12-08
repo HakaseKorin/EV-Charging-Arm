@@ -19,4 +19,4 @@ model = YOLO(r"ev_socket_model.pt")
 print("Finding Socket..")
 
 # Run inference with boxes automatically drawn & saved
-results = model("current.jpg", save=True, name=".")
+results = model("current.jpg", save=True, name="outpu")
