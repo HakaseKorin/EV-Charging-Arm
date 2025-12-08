@@ -324,32 +324,75 @@ void readSerial() {
   }
 }
 
+bool isNumber(const std::string& str) {
+    try {
+        std::stod(str);  // for double; use std::stoi for int
+        return true;
+    } catch (std::invalid_argument&) {
+        return false;
+    } catch (std::out_of_range&) {
+        return false;
+    }
+}
+
 void processMessage(String msg) {
   int sep = msg.indexOf('|');
   String command = msg.substring(0, sep);
   String value   = msg.substring(sep + 1);
 
-  if (command == "SET_MODE") {
-    if (value == "BLINK") {
-      //currentMode = LED_BLINK;
-      Serial.println("<ACK|MODE_BLINK>");
+  if (command == "MOVE") {
+    if (value == "FORWARD") {
+      thrustForward();
+      Serial.println("<ACK|FORWARD>");
+      return;
     } 
-    else if (value == "OFF") {
-      //currentMode = LED_OFF;
-      Serial.println("<ACK|MODE_OFF>");
+  }
+  if (command == "STATE") {
+    if (value == "RESET") {
+      default_servo();
+      Serial.println("<ACK|RESET>");
+      return;
+    }
+    if (value == "SCAN") {
+      Serial.println("<ACK|SCAN>");
+      return;
+    }
+  }
+  if (command == "ROTATE") {
+    if (isNumber(value)) {
+      baseRotation(value);
+      Serial.println("<ACK|ROTATE>");
+      return;
     } 
-    else {
-      Serial.println("<ERR|INVALID_MODE>");
+  }
+  if (command == "X") {
+    if (isNumber(value)) {
+      Serial.println("<ACK|TRANSFORM>");
+      return;
+    } 
+  }
+  if (command == "Y") {
+    if (isNumber(value)) {
+      Serial.println("<ACK|TRANSFORM>");
+      return;
+    } 
+  }
+  if (command == "CLAW") {
+    if (value == "OPEN") {
+      pca.setPWM(5,0,angleToPulse(90));
+      Serial.println("<ACK|GRAB>");
+      return;
+    }
+    if (value == "CLOSE") {
+      pca.setPWM(5,0,angleToPulse(0));
+      Serial.println("<ACK|RELEASE>");
+      return;
     }
   }
   
-  else if (command == "PING") {
-    Serial.println("<PONG|0>");
-  }
+  Serial.println("<ERR|INVALID_INPUT>");
+  return;
 
-  else {
-    Serial.println("<ERR|UNKNOWN_CMD>");
-  }
 }
 
 void moveKinematics() {
