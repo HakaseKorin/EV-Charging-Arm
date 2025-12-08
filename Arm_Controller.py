@@ -4,6 +4,44 @@ import time
 ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
 time.sleep(2)
 
+input_buffer = ""
+reading_frame = False
+
+def read_serial():
+    global input_buffer, reading_frame
+
+    while ser.in_waiting > 0:
+        c = ser.read().decode(errors='ignore')
+
+        if c == '<':
+            input_buffer = ""
+            reading_frame = True
+
+        elif c == '>':
+            reading_frame = False
+            process_message(input_buffer)
+
+        else:
+            if reading_frame:
+                input_buffer += c
+
+def process_message(msg):
+    if '|' not in msg:
+        print("Invalid frame:", msg)
+        return
+
+    command, value = msg.split('|', 1)  # split only at first '|'
+
+    print("Command:", command)
+    print("Value:  ", value)
+
+    if command === "REQ":
+        # do scan if found respond true, else false
+        send(f"ACK {SCAN}", value)
+
+    # Example: respond back to Arduino
+    send(f"ACK {command}", value)
+
 def send(cmd, value):
     msg = f"<{cmd}|{value}>"
     ser.write(msg.encode())

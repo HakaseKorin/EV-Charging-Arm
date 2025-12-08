@@ -324,15 +324,20 @@ void readSerial() {
   }
 }
 
-bool isNumber(const std::string& str) {
-    try {
-        std::stod(str);  // for double; use std::stoi for int
-        return true;
-    } catch (std::invalid_argument&) {
-        return false;
-    } catch (std::out_of_range&) {
-        return false;
-    }
+bool isNumber(String str) {
+  if (str.length() == 0) return false;
+
+  int start = 0;
+  if (str[0] == '-') { // negative numbers
+    if (str.length() == 1) return false; // only "-" is invalid
+    start = 1;
+  }
+
+  for (int i = start; i < str.length(); i++) {
+    if (!isDigit(str[i])) return false;
+  }
+
+  return true;
 }
 
 void processMessage(String msg) {
@@ -360,19 +365,22 @@ void processMessage(String msg) {
   }
   if (command == "ROTATE") {
     if (isNumber(value)) {
-      baseRotation(value);
+      float data = value.toFloat();
+      baseRotation(data);
       Serial.println("<ACK|ROTATE>");
       return;
     } 
   }
   if (command == "X") {
     if (isNumber(value)) {
+      value = value.toInt();
       Serial.println("<ACK|TRANSFORM>");
       return;
     } 
   }
   if (command == "Y") {
     if (isNumber(value)) {
+      value = value.toInt();
       Serial.println("<ACK|TRANSFORM>");
       return;
     } 
@@ -429,7 +437,6 @@ void default_servo() { // 01-50,2-40,3-140,5-90 >> Default pose.
   pca.setPWM(3, 0, angleToPulse(wrist_vert));
   //movementStepper(4,90);
   movementStepper(5,90);
-
 }
 
 void maintain_servo() {
