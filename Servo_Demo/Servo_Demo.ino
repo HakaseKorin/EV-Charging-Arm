@@ -20,6 +20,8 @@ int wrist_vert =        0; // channel 3
 int wrist_horz =        0; // channel 4
 int claw =              0; // channel 5
 
+String inputBuffer = "";
+
 void setup() {
   Serial.begin(9600);
   Serial.println("8 channel Servo test!");
@@ -60,6 +62,46 @@ int angleToPulse(int angle, int16_t min, int16_t max) {
   //SERVO 1 min 175, max 450 v2, min 165 max 430
   //SERVO 2 min 175 max 455 v2 min 170, max 430
   //SERVO 3 min 75, max 455
+}
+
+void moveArmSimultaneous(int shoulder_target, int elbow_target, int wrist_target, int claw_target) {
+  // Compute step counts for each servo
+  int shoulder_steps = abs(shoulder_target - shoulder_angle);
+  int elbow_steps    = abs(elbow_target - elbow_angle);
+  int wrist_steps    = abs(wrist_target - wrist_vert);
+  int claw_steps     = abs(claw_target - claw);
+
+  int max_steps = max(shoulder_steps, max(elbow_steps, max(wrist_steps, claw_steps)));
+
+  if (max_steps == 0) return; // already at target
+
+  // Compute incremental step for each servo
+  float shoulder_inc = float(shoulder_target - shoulder_angle) / max_steps;
+  float elbow_inc    = float(elbow_target - elbow_angle) / max_steps;
+  float wrist_inc    = float(wrist_target - wrist_vert) / max_steps;
+  //float claw_inc     = float(claw_target - claw) / max_steps;
+
+  // Move in small increments
+  for (int i = 1; i <= max_steps; i++) {
+    int s = round(shoulder_angle + shoulder_inc * i);
+    int e = round(elbow_angle + elbow_inc * i);
+    int w = round(wrist_vert + wrist_inc * i);
+    //int c = round(claw + claw_inc * i);
+
+    // Move each servo
+    moveBase(s);                  // shoulder channels 0 & 1
+    pwm.setPWM(2, 0, angleToPulse(e, SMIN_02, SMAX_02)); // elbow
+    pwm.setPWM(3, 0, angleToPulse(w, SMIN_02, SMAX_02)); // wrist vertical
+    //pwm.setPWM(5, 0, angleToPulse(c)); // claw
+
+    delay(SERVOSTEP); // small delay for smooth motion
+  }
+
+  // Update current angles
+  shoulder_angle = shoulder_target;
+  elbow_angle    = elbow_target;
+  wrist_vert     = wrist_target;
+  //claw           = claw_target;
 }
 
 void readSerial() {
@@ -202,6 +244,12 @@ void maintain_servo() {
   //pwm.setPWM(5, 0, angleToPulse(claw));
 }
 
+void thrustForward() {
+  //movementStepper(3,90);
+  //movementStepper(1,100);
+  //movementStepper(2,45);
+  moveArmSimultaneous(100,45,90,90);
+}
 
 void servo_test() {
   pwm.setPWM(0, 0, angleToPulse(90, SMIN_00, SMAX_00));
