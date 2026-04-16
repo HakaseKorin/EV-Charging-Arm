@@ -1,14 +1,18 @@
 from ultralytics import YOLO
 from picamera2 import Picamera2
+from PIL import Image
 import os
 import time
 
 home_dir = os.environ["HOME"]
+
 cam = Picamera2()
 config = cam.create_still_configuration()
 cam.configure(config)
 
 cam.start()
+cam.start_preview()
+
 print("Taking Picture..")
 time.sleep(2)
 cam.capture_file(f"{home_dir}/EV-Charging-Arm/current.jpg")
@@ -18,8 +22,12 @@ print("Saved Picture")
 model = YOLO(r"ev_socket_model.pt")
 print("Finding Socket..")
 
+cam.stop_preview()
+
 # Run inference with boxes automatically drawn & saved
 results = model("current.jpg", save=True, name=".")
+img = Image.open("current.jpg")
+img.show()
 
 for result in results:
     # Access the Boxes object
@@ -30,4 +38,6 @@ for result in results:
         print(True)
     else:
         print(False)
-        
+
+
+input("Press enter to exit")
