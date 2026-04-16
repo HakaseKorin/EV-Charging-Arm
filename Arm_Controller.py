@@ -53,35 +53,32 @@ def process_message(msg):
     print("Command:", command)
     print("Value:  ", value)
 
-    if command == "REQ":
-        
-        cam.start()
-        print("Taking Picture..")
-        time.sleep(2)
-        cam.capture_file(f"{home_dir}/EV-Charging-Arm/current.jpg")
-        print("Saved Picture")
-
-        # Load trained model
-        model = YOLO(r"ev_socket_model.pt")
-        print("Finding Socket..")
-
-        # Run inference with boxes automatically drawn & saved
-        results = model("current.jpg", save=True, name=".")
-
-        for result in results:
-            # Access the Boxes object
-            boxes = result.boxes
-    
-            # Check if any objects were detected
-            if len(boxes) > 0:
-                value = "TRUE"
-            else:
-                value = "FALSE"
-
-        send(f"SCAN", value)
-
     # Example: respond back to Arduino
     send(f"ACK {command}", value)
+
+def scan():
+    cam.start()
+    print("Taking Picture..")
+    time.sleep(2)
+    cam.capture_file(f"{home_dir}/EV-Charging-Arm/current.jpg")
+    print("Saved Picture")
+
+    # Load trained model
+    model = YOLO(r"ev_socket_model.pt")
+    print("Finding Socket..")
+
+    # Run inference with boxes automatically drawn & saved
+    results = model("current.jpg", save=True, name=".")
+
+    for result in results:
+        # Access the Boxes object
+        boxes = result.boxes
+    
+        # Check if any objects were detected
+        if len(boxes) > 0:
+            return "TRUE"
+        else:
+            return "FALSE"
 
 while True:
     user_input = input("Command: ").strip()
@@ -95,6 +92,9 @@ while True:
         parts = user_input.split()
         cmd = parts[0]
         value = " ".join(parts[1:]) if len(parts) > 1 else ""
+        if value == "SCAN":
+            cmd = "SCAN"
+            value = scan()
         send(cmd, value)
     except Exception as e:
         print("Error parsing command:", e)
