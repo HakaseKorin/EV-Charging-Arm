@@ -11,7 +11,6 @@ config = cam.create_still_configuration()
 cam.configure(config)
 
 cam.start()
-cam.start_preview()
 
 print("Taking Picture..")
 time.sleep(2)
@@ -22,12 +21,9 @@ print("Saved Picture")
 model = YOLO(r"ev_socket_model.pt")
 print("Finding Socket..")
 
-cam.stop_preview()
-
 # Run inference with boxes automatically drawn & saved
 results = model("current.jpg", save=True, name=".")
 img = Image.open("current.jpg")
-img.show()
 
 for result in results:
     # Access the Boxes object
