@@ -1,5 +1,5 @@
-from ultralytics import YOLO
-from picamera2 import Picamera2
+from ultralytics import YOLO 
+from picamera2 import Picamera2 
 from PIL import Image
 import os
 import time
