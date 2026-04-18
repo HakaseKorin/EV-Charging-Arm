@@ -17,3 +17,14 @@ TMPDIR=/var/tmp/ pip install ultralytics --no-cache-dir
 # using the python code
 
 python Camera.py
+
+# TODOS
+
+connect RPi to ESP32 and communicate commands back and forth
+    execution should come from the pi side first before claw moves
+
+test to see how extended claw looks on photos
+test to see if possible to align claw slightly
+
+create gui
+display the image after being analyzed by model
