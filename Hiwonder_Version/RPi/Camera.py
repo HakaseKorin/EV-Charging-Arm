@@ -95,7 +95,7 @@ for result in results:
     else:
         print(False)
 
-img = cv2.imread("current.jpg")                     # BGR
+img = cv2.imread("../../runs/detect/current.jpg")                     # BGR
 out = draw_crosshair_cv(img, center=None)         # center
 cv2.imwrite("updated.jpg", out)
 
