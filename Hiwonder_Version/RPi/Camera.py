@@ -14,7 +14,7 @@ cam.start()
 
 print("Taking Picture..")
 time.sleep(2)
-cam.capture_file(f"{home_dir}/EV-Charging-Arm/current.jpg")
+cam.capture_file(f"{home_dir}/EV-Charging-Arm/Hiwonder_Version/RPi/current.jpg")
 print("Saved Picture")
 
 # Load trained model
