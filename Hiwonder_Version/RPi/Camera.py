@@ -14,7 +14,7 @@ cam.start()
 
 print("Taking Picture..")
 time.sleep(2)
-cam.capture_file(f"{home_dir}/EV-Charging-Arm/Hiwonder_version/RPi/current.jpg")
+cam.capture_file(f"{home_dir}/EV-Charging-Arm/current.jpg")
 print("Saved Picture")
 
 # Load trained model
@@ -24,6 +24,7 @@ print("Finding Socket..")
 # Run inference with boxes automatically drawn & saved
 results = model("current.jpg", save=True, name=".")
 #img = Image.open("current.jpg")
+print("test")
 
 for result in results:
     # Access the Boxes object
