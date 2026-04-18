@@ -58,6 +58,6 @@ def draw_crosshair_cv(
     if return_img:
         return out
     
-img = cv2.imread("test.jpg")                     # BGR
+img = cv2.imread("current.jpg")                     # BGR
 out = draw_crosshair_cv(img, center=None)         # center
 cv2.imwrite("updated.jpg", out)
