@@ -23,7 +23,7 @@ print("Finding Socket..")
 
 # Run inference with boxes automatically drawn & saved
 results = model("current.jpg", save=True, name=".")
-img = Image.open("current.jpg")
+#img = Image.open("current.jpg")
 
 for result in results:
     # Access the Boxes object
