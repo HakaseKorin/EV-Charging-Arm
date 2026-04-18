@@ -3,6 +3,7 @@ from picamera2 import Picamera2
 from ultralytics import YOLO 
 from PIL import Image
 import numpy as np
+import shutil
 import time
 import cv2
 import os
@@ -14,6 +15,7 @@ config = cam.create_still_configuration()
 cam.configure(config)
 
 Coord = Union[Tuple[int,int], Tuple[float,float]]
+folder_path = "../../runs/detect"
 
 def draw_crosshair_cv(
     img: np.ndarray,
@@ -69,6 +71,7 @@ def draw_crosshair_cv(
     if return_img:
         return out
 
+
 cam.start()
 
 print("Taking Picture..")
@@ -83,7 +86,6 @@ print("Finding Socket..")
 # Run inference with boxes automatically drawn & saved
 results = model("current.jpg", save=True, name=".")
 #img = Image.open("current.jpg")
-print("test")
 
 for result in results:
     # Access the Boxes object
@@ -95,8 +97,18 @@ for result in results:
     else:
         print(False)
 
-img = cv2.imread("../../runs/detect/current.jpg")                     # BGR
+img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
 out = draw_crosshair_cv(img, center=None)         # center
 cv2.imwrite("updated.jpg", out)
+
+try:
+    shutil.rmtree(folder_path)
+    print(f"Folder '{folder_path}' and all its contents have been deleted.")
+except FileNotFoundError:
+    print(f"The folder '{folder_path}' does not exist.")
+except PermissionError:
+    print(f"Permission denied to delete '{folder_path}'.")
+except Exception as e:
+    print(f"An error occurred: {e}")
 
 input("Press enter to exit")
