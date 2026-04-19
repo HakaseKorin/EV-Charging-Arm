@@ -69,7 +69,7 @@ class Camera_Guide():
             return False
 
     def check_horz(self):
-        margins = int(self.__img_w * .05)
+        margins = int(self.__img_w * .1)
 
         center_x = self.__img_w // 2
         result = abs(center_x - self.__box_x)
@@ -84,7 +84,7 @@ class Camera_Guide():
         return 0;
 
     def check_vert(self):
-        margins = int(self.__img_h * .05)
+        margins = int(self.__img_h * .1)
 
         center_y = self.__img_h // 2
         result = abs(center_y - self.__box_y)
