@@ -47,7 +47,7 @@ class Camera_Guide():
                 cx = coords[0][0]
                 cy = coords[0][1]
         
-        self.set_bounding_box_center(cx, cy)
+                self.set_bounding_box_center(cx, cy)
 
         img = cv2.imread(f"../../runs/detect/current.jpg")                     # BGR
         out = draw_crosshair_cv(img, center=None)         # center
