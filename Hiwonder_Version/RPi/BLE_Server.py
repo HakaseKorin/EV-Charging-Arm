@@ -72,13 +72,13 @@ async def main():
                     break
                 if(vert_result < 0):
                     # adjust up
-                    data = vert_result.encode()
+                    data = str(vert_result).encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm upwards..")
                     break
                 if(vert_result > 0):
                     # adjust down
-                    data = vert_result.encode()
+                    data = str(vert_result).encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm downwards..")
                     break
