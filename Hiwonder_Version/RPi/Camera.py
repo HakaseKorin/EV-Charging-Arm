@@ -101,42 +101,6 @@ async def scan_and_connect():
         #TODO: change to properly end program
         if retries>10: return
 
-# returns -1 to adjust left, 1 to adjust right, 0 for no change
-def check_horz(box_x, cam_x):
-    img = cv2.imread("update.jpg")
-    h, w = img.shape[:2]
-    margins = int(w*.05)
-
-    # finding center
-    result = cam_x - box_x
-    
-    if abs(result) > margins:
-        # tell to adjust left
-        return -1
-    if abs(result) < margins:
-        # tell to adjust right
-        return 1
-    # no change needed
-    return 0;
-
-# returns -1 to adjust left, 1 to adjust right, 0 for no change
-def check_vert(box_y, cam_y):
-    img = cv2.imread("update.jpg")
-    h, w = img.shape[:2]
-    margins = int(h*.05)
-
-    # finding center
-    result = cam_y - box_y
-    
-    if abs(result) > margins:
-        # tell to adjust left
-        return -1
-    if abs(result) < margins:
-        # tell to adjust right
-        return 1
-    # no change needed
-    return 0;
-
 
 def take_photo():
     cx = 0 
