@@ -70,17 +70,15 @@ async def main():
                 vert_result = camera.check_vert()
                 if(vert_result == 0):
                     break
-                if(vert_result == -1):
+                if(vert_result < 0):
                     # adjust up
-                    message = "adjust_up"
-                    data = message.encode()
+                    data = vert_result.encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm upwards..")
                     break
-                if(vert_result == 1):
+                if(vert_result > 0):
                     # adjust down
-                    message = "adjust_down"
-                    data = message.encode()
+                    data = vert_result.encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm downwards..")
                     break
