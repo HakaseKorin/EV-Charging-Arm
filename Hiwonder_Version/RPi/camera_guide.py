@@ -1,6 +1,7 @@
 from typing import Tuple, Optional, Union
 from picamera2 import Picamera2
 from ultralytics import YOLO
+from PIL import Image
 import numpy as np 
 import shutil
 import time
@@ -30,7 +31,8 @@ class Camera_Guide():
         self.set_image_dimensions(w,h)
 
     def show_image(self):
-        img = cv2.imread("updated.jpg")
+        #img = cv2.imread("updated.jpg")
+        img = Image.open("updated.jpg")
         img.show()
         #cv2.imshow("Camera01", img)
         cv2.waitKey(0)
