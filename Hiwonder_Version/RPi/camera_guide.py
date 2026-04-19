@@ -23,7 +23,7 @@ class Camera_Guide():
 
 
     def startup(self):
-        img = cv2.imread("update.jpg")
+        img = cv2.imread("updated.jpg")
         h, w = img.shape[:2]
         
         self.set_image_dimensions(w,h)
