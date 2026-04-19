@@ -215,14 +215,15 @@ void loop() {
   claw.set_angle(1,180,100);
   delay(6000);
   */
-  servoTest();
+  //servoTest();
+
+  if (pendingCommand != 0) {
+    uint8_t cmd = pendingCommand;
+    pendingCommand = 0;
+  // Safe to run long servos here
+  }
+
+  delay(10); // Keeps BLE alive
   
-  //setCurrent(2, 0);
-  //while(true){
-  //  movementStepper(2,30);
-  //  delay(2000);
-  //  movementStepper(2,180);
-  //  delay(1800000);
-  //}
 
 }

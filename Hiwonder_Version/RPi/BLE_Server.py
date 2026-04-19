@@ -69,10 +69,18 @@ async def main():
                     break
                 if(vert_result == -1):
                     # adjust up
-                    pass
+                    message = "adjust_up"
+                    data = message.encode()
+                    await client.write_gatt_char(CHAR_UUID, data, response=True)
+                    print("Adjusting arm upwards..")
+                    break
                 if(vert_result == 1):
                     # adjust down
-                    pass
+                    message = "adjust_down"
+                    data = message.encode()
+                    await client.write_gatt_char(CHAR_UUID, data, response=True)
+                    print("Adjusting arm downwards..")
+                    break
             # Give command to approach
             print("Device is now connected..")
             input("Press Enter to End Simulation")
