@@ -14,21 +14,36 @@ GPIO.setup(27, GPIO.OUT)
 GPIO.setup(22, GPIO.OUT)
 GPIO.setup(23, GPIO.OUT)
 
-def track_state():
+def charging_in_progress():
+    print("Now charging..")
+    GPIO.output(23,GPIO.HIGH)
+
+def disconnect():
+    print("Stopping charging squence..")
+    GPIO.output(23,GPIO.LOW)
+
+def standby():
     print("Standby")
     GPIO.output(17,GPIO.HIGH)
-    time.sleep(3)
+    GPIO.output(27,GPIO.LOW)
+    GPIO.output(22,GPIO.LOW)
+    time.sleep(2)
 
-    # Docking
+def docking():
     print("Docking")
+    GPIO.output(17,GPIO.LOW)
     GPIO.output(27,GPIO.HIGH)
-    time.sleep(5)
+    GPIO.output(22,GPIO.LOW)
+    time.sleep(2)
 
-    # Charging
+def charging():
     print("Charging")
+    GPIO.output(17,GPIO.LOW)
+    GPIO.output(27,GPIO.LOW)
     GPIO.output(22,GPIO.HIGH)
-    time.sleep(5)
+    time.sleep(2)
 
+    charging_in_progress()
 
 async def scan_and_connect():
     global device
@@ -68,6 +83,7 @@ async def main():
         ) as client:
             while True:
                 input("System Ready, Press Enter to continue..")
+                standby()
                 camera.take_photo()
                 # Locate Socket
                 if camera.locate_socket():
@@ -101,6 +117,7 @@ async def main():
                 vert_result = camera.check_vert()
                 if(vert_result == 0):
                     print("Arm within tolerances, beginning approach..")
+                    docking()
                     time.sleep(1)
                     break
                 if(vert_result < 0):
@@ -108,6 +125,7 @@ async def main():
                     data = str(vert_result).encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm upwards..")
+                    docking()
                     time.sleep(1)
                     break
                 if(vert_result > 0):
@@ -115,14 +133,18 @@ async def main():
                     data = str(vert_result).encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm downwards..")
+                    docking()
                     time.sleep(1)
                     break
+            time.sleep(5)
+            print("Device is now connected..")
+            charging()
             input("Press Enter to Disconnect..")
             message = "disconnect"
             data = message.encode()
             await client.write_gatt_char(CHAR_UUID, data, response=True)
             # Give command to approach
-            print("Device is now connected..")
+            disconnect()
             input("Press Enter to End Simulation")
                
 
