@@ -52,7 +52,7 @@ async def main():
                 print("No viable target located, please try again..")
                 time.sleep(5)
             
-            camera.start()
+            camera.startup()
 
             while True:
                 # Horizontal alignment
