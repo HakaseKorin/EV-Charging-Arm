@@ -58,29 +58,39 @@ async def main():
                 # Horizontal alignment
                 horz_result = camera.check_horz()
                 if(horz_result == 0):
+                    print("Please do not move vehicle while arm is in motion..")
+                    time.sleep(1)
+
+                    camera.show_image()
                     break
                 if(horz_result == -1):
                     print("Please adjust your vehicle right")
+                    camera.show_image()
                     input("Press Enter to try again..")
                 if(horz_result == 1):
                     print("Please adjust your vehicle left")
+                    camera.show_image()
                     input("Press Enter to try again..")
             while True:
                 # Vertical alignment
                 vert_result = camera.check_vert()
                 if(vert_result == 0):
+                    print("Arm within tolerances, beginning approach..")
+                    time.sleep(1)
                     break
                 if(vert_result < 0):
                     # adjust up
                     data = str(vert_result).encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm upwards..")
+                    time.sleep(1)
                     break
                 if(vert_result > 0):
                     # adjust down
                     data = str(vert_result).encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm downwards..")
+                    time.sleep(1)
                     break
             # Give command to approach
             print("Device is now connected..")

@@ -3,6 +3,7 @@ from picamera2 import Picamera2
 from ultralytics import YOLO
 import numpy as np 
 import shutil
+import time
 import cv2
 import os
 
@@ -28,10 +29,17 @@ class Camera_Guide():
         
         self.set_image_dimensions(w,h)
 
+    def show_image(self):
+        img = cv2.imread("updated.jpg")
+        cv2.imshow("Camera01", img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
     def take_photo(self):
         self.__cam.start()
 
         print("Taking Picture..")
+        time.sleep(1)
         self.__cam.capture_file(f"{self.__dir}/EV-Charging-Arm/Hiwonder_Version/RPi/current.jpg")
 
         print("Picture Saved..")
