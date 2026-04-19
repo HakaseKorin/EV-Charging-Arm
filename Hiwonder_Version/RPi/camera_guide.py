@@ -40,9 +40,9 @@ class Camera_Guide():
         print("Locating Socket..")
         results = self.__model("current.jpg", save=True, name=".")
 
-        if len(boxes) > 0:
-            for result in results:
-                boxes = result.boxes
+        for result in results:
+            boxes = result.boxes
+            if len(boxes) > 0:
                 coords = boxes.xywh.tolist()
                 cx = coords[0][0]
                 cy = coords[0][1]
@@ -177,8 +177,8 @@ if __name__ == "__main__":
     camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
 
     camera.take_photo()
-    camera.locate_socket()
-    camera.startup()
-    print(camera.check_horz())
-    print(camera.check_vert())
+    if camera.locate_socket():
+        camera.startup()
+        print(camera.check_horz())
+        print(camera.check_vert())
 
