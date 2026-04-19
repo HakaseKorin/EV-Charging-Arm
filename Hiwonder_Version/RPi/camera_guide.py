@@ -21,8 +21,6 @@ class Camera_Guide():
         config = self.__cam.create_still_configuration()
         self.__cam.configure(config)
 
-        self.startup()
-
 
     def startup(self):
         img = cv2.imread("update.jpg")
@@ -161,6 +159,7 @@ def draw_crosshair_cv(
         return out
     
     if __name__ == "__main__":
+        print("Running camera_guide as main")
         folder_path = "../../runs/detect"
         camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
 
