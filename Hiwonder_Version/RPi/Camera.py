@@ -105,11 +105,13 @@ def locate_socket():
     print("Finding Socket..")
     # Run inference with boxes automatically drawn & saved
     results = model("current.jpg", save=True, name=".")
+    
 
     for result in results:
         # Access the Boxes object
         boxes = result.boxes
-        cx, cy, bw, bh = boxes.xywh
+        print(boxes.xywh)
+        #cx, cy, bw, bh = boxes.xywh
 
     img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
     out = draw_crosshair_cv(img, center=None)         # center
@@ -140,7 +142,7 @@ def check_horz(bounding_x):
         return 0;
 
 def check_vert(bounding_y):
-        h = startup()[0]
+        h = startup()[1]
         margins = int(h * .05)
 
         center_y = h // 2
