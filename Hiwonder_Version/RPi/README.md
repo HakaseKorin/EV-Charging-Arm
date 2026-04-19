@@ -23,8 +23,7 @@ python Camera.py
 connect RPi to ESP32 and communicate commands back and forth
     execution should come from the pi side first before claw moves
 
-test to see how extended claw looks on photos
-test to see if possible to align claw slightly
+create function to tell user if car is aligned with claw
 
 create gui
 display the image after being analyzed by model
