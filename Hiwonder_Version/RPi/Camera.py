@@ -114,7 +114,8 @@ def locate_socket():
         # Access the Boxes object
         boxes = result.boxes
         #print(boxes.xywh)
-        cx, cy, bw, bh = boxes.xywh
+        values = boxes.xywh.tolist()
+        print(values)
 
     img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
     out = draw_crosshair_cv(img, center=None)         # center
