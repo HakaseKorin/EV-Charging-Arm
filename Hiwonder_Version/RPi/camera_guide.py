@@ -69,7 +69,7 @@ class Camera_Guide():
             return False
 
     def check_horz(self):
-        margins = self.__img_w // 10
+        margins = self.__img_w // 20
 
         center_x = self.__img_w // 2
         result = abs(center_x - self.__box_x)
@@ -78,16 +78,17 @@ class Camera_Guide():
         print(f"results x: {result}")
         
         if result > margins:
-            # tell to adjust left
-            return -1
-        if result < margins:
             # tell to adjust right
-            return 1
-        # no change needed
-        return 0;
+            if center_x > self.__box_x:
+                return -1
+            # adjust left
+            else:
+                return 1
+        if result <= margins:
+            return 0
 
     def check_vert(self):
-        margins = self.__img_h // 10
+        margins = self.__img_h // 20
 
         center_y = self.__img_h // 2
         result = abs(center_y - self.__box_y)
@@ -96,13 +97,14 @@ class Camera_Guide():
         print(f"results x: {result}")
         
         if result > margins:
-            # tell to adjust left
-            return -1
-        if result < margins:
-            # tell to adjust right
-            return 1
-        # no change needed
-        return 0;
+            # adjust up
+            if center_y > self.__box_:
+                return -1
+            # adjust down
+            else:
+                return 1
+        if result <= margins:
+            return 0
 
     def set_bounding_box_center(self,x,y):
         self.__box_x = x
