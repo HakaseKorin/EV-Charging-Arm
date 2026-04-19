@@ -115,10 +115,10 @@ async def main():
                     print("Adjusting arm downwards..")
                     time.sleep(1)
                     break
+            input("Press Enter to Disconnect..")
             message = "disconnect"
             data = message.encode()
             await client.write_gatt_char(CHAR_UUID, data, response=True)
-            input("Press Enter to Disconnect..")
             # Give command to approach
             print("Device is now connected..")
             input("Press Enter to End Simulation")
