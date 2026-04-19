@@ -24,8 +24,6 @@ folder_path = "../../runs/detect"
 home_dir = os.environ["HOME"]
 
 Coord = Union[Tuple[int,int], Tuple[float,float]]
-image_dim = []
-bounding_box_dim = []
 
 async def scan_and_connect():
     global device
