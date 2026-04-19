@@ -145,6 +145,8 @@ async def main():
             await client.write_gatt_char(CHAR_UUID, data, response=True)
             # Give command to approach
             disconnect()
+            docking()
+            time.sleep(5)
             standby()
             input("Press Enter to End Simulation")
                
