@@ -31,9 +31,10 @@ class Camera_Guide():
 
     def show_image(self):
         img = cv2.imread("updated.jpg")
-        cv2.imshow("Camera01", img)
+        img.show()
+        #cv2.imshow("Camera01", img)
         cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        #cv2.destroyAllWindows()
 
     def take_photo(self):
         self.__cam.start()
