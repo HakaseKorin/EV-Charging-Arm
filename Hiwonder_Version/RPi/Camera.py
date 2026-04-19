@@ -21,7 +21,6 @@ folder_path = "../../runs/detect"
 home_dir = os.environ["HOME"]
 
 Coord = Union[Tuple[int,int], Tuple[float,float]]
-cx = cy = w = h =  bw = bh = 0 
 
 def draw_crosshair_cv(
     img: np.ndarray,
@@ -99,8 +98,10 @@ def cleanup():
 def startup():
         img = cv2.imread("update.jpg")
         h, w = img.shape[:2]
+        return [h,w]
 
 def locate_socket():
+    cx = cy = bw = by = 0
     print("Finding Socket..")
     # Run inference with boxes automatically drawn & saved
     results = model("current.jpg", save=True, name=".")
@@ -123,6 +124,7 @@ def locate_socket():
         print(False)
 
 def check_horz(bounding_x):
+        w = startup()[1]
         margins = int(w * .05)
 
         center_x = w // 2
@@ -138,6 +140,7 @@ def check_horz(bounding_x):
         return 0;
 
 def check_vert(bounding_y):
+        h = startup()[0]
         margins = int(h * .05)
 
         center_y = h // 2
