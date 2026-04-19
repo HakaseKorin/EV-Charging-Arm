@@ -31,11 +31,10 @@ class Camera_Guide():
         self.set_image_dimensions(w,h)
 
     def show_image(self):
+        pass
         #img = cv2.imread("updated.jpg")
-        img = Image.open("updated.jpg")
-        img.show()
         #cv2.imshow("Camera01", img)
-        cv2.waitKey(0)
+        #cv2.waitKey(0)
         #cv2.destroyAllWindows()
 
     def take_photo(self):

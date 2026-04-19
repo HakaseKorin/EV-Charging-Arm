@@ -61,15 +61,15 @@ async def main():
                     print("Please do not move vehicle while arm is in motion..")
                     time.sleep(1)
 
-                    camera.show_image()
+                    #camera.show_image()
                     break
                 if(horz_result == -1):
                     print("Please adjust your vehicle right")
-                    camera.show_image()
+                    #camera.show_image()
                     input("Press Enter to try again..")
                 if(horz_result == 1):
                     print("Please adjust your vehicle left")
-                    camera.show_image()
+                    #camera.show_image()
                     input("Press Enter to try again..")
             while True:
                 # Vertical alignment
