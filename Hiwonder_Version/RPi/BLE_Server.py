@@ -137,7 +137,7 @@ async def main():
                     docking()
                     time.sleep(1)
                     break
-            time.sleep(5)
+            time.sleep(7)
             print("Device is now connected..")
             charging()
             input("Press Enter to Disconnect..")
