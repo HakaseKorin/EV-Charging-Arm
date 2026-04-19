@@ -167,4 +167,6 @@ if __name__ == "__main__":
 
     camera.take_photo()
     camera.locate_socket()
+    print(camera.check_horz())
+    print(camera.check_vert())
 
