@@ -99,11 +99,11 @@ class Camera_Guide():
         if result > margins:
             # adjust up
             if center_y > self.__box_y:
-                correction = -1 * (result // margins)
+                correction = result // margins
                 return correction
             # adjust down
             else:
-                correction = result // margins
+                correction = -1 * (result // margins)
                 return correction
         if result <= margins:
             return 0
