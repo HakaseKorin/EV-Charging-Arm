@@ -126,8 +126,8 @@ def startup():
 
         img = cv2.imread("updated.jpg")
         image_dim = img.shape[:2]
-        print(image_dim[0])
-        print(image_dim[1])
+        #print(image_dim[0])
+        #print(image_dim[1])
 
         return
 
@@ -137,15 +137,14 @@ def locate_socket():
     print("Finding Socket..")
     # Run inference with boxes automatically drawn & saved
     results = model("current.jpg", save=True, name=".")
-    
 
     for result in results:
         # Access the Boxes object
         boxes = result.boxes
         #print(boxes.xywh)
         bounding_box_dim = boxes.xywh.tolist()
-        print(bounding_box_dim[0][0])
-        print(bounding_box_dim[0][1])
+        #print(bounding_box_dim[0][0]) #x
+        #print(bounding_box_dim[0][1]) #y
 
 
     img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
@@ -225,5 +224,7 @@ async def main():
 take_photo()
 locate_socket()
 startup()
+check_horz(bounding_box_dim[0][0])
+check_vert(bounding_box_dim[0][1])
 
 input("Press enter to exit")
