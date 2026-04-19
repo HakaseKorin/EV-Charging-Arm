@@ -189,4 +189,6 @@ if __name__ == "__main__":
         camera.startup()
         print(camera.check_horz())
         print(camera.check_vert())
+        camera.show_image()
+    
 
