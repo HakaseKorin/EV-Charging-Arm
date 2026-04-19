@@ -40,11 +40,12 @@ class Camera_Guide():
         print("Locating Socket..")
         results = self.__model("current.jpg", save=True, name=".")
 
-        for result in results:
-            boxes = result.boxes
-            coords = boxes.xywh.tolist()
-            cx = coords[0][0]
-            cy = coords[0][1]
+        if len(boxes) > 0:
+            for result in results:
+                boxes = result.boxes
+                coords = boxes.xywh.tolist()
+                cx = coords[0][0]
+                cy = coords[0][1]
         
         self.set_bounding_box_center(cx, cy)
 
