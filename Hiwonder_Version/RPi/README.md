@@ -16,7 +16,16 @@ TMPDIR=/var/tmp/ pip install ultralytics --no-cache-dir
 
 # using the python code
 
-python Camera.py
+open up CLI
+navigate to this folder
+
+from root
+
+cd EV-Charging-Arm
+cd Hiwonder_Version
+cd RPi
+source env/bin/activate
+python BLE_Server.py
 
 # TODOS
 
@@ -27,3 +36,4 @@ create function to tell user if car is aligned with claw
 
 create gui
 display the image after being analyzed by model
+
