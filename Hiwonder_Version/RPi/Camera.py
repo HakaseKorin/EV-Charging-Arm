@@ -21,7 +21,7 @@ folder_path = "../../runs/detect"
 home_dir = os.environ["HOME"]
 
 Coord = Union[Tuple[int,int], Tuple[float,float]]
-cx,cy ,w ,h, bw, bh = 0 
+cx = cy = w = h =  bw = bh = 0 
 
 def draw_crosshair_cv(
     img: np.ndarray,
