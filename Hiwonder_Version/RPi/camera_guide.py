@@ -158,11 +158,11 @@ def draw_crosshair_cv(
     if return_img:
         return out
     
-    if __name__ == "__main__":
-        print("Running camera_guide as main")
-        folder_path = "../../runs/detect"
-        camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
+if __name__ == "__main__":
+    print("Running camera_guide as main")
+    folder_path = "../../runs/detect"
+    camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
 
-        camera.take_photo()
-        camera.locate_socket()
+    camera.take_photo()
+    camera.locate_socket()
 
