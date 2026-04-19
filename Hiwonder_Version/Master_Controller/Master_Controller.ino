@@ -4,6 +4,7 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <string>
 
 #define SERVICE_UUID        "12345678-1234-5678-1234-56789abcdef0"
 #define CHARACTERISTIC_UUID "12345678-1234-5678-1234-56789abcdef1"
@@ -27,6 +28,7 @@ int base_angle =          0;  //5
 int base_swivel_angle =   0;  //6
 
 volatile uint8_t pendingCommand = 0;
+String correction = "";
 
 class MyCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
@@ -43,6 +45,8 @@ class MyCallbacks : public BLECharacteristicCallbacks {
       Serial.printf("Stored command: %d\n", pendingCommand);
     } else {
       Serial.println("Multi-byte command detected");
+      correction = rx;
+      Serial.println(correction);
     }
   }
 };
@@ -216,14 +220,43 @@ void loop() {
   delay(6000);
   */
   //servoTest();
+  //Serial.println("loop is running..");
+  
 
   if (pendingCommand != 0) {
     uint8_t cmd = pendingCommand;
+    Serial.println(pendingCommand);
     pendingCommand = 0;
-    cmd = cmd + 1
-    Serial.println(cmd);
-  // Safe to run long servos here
   }
+
+  if (correction != "" ) {
+    int offset = std::atoi(correction.c_str());
+    arm.coordinate_set(20,0,20,0,-90,90,1000);
+    delay(2000);
+    //claw.set_angle(1,180,100);
+    arm.coordinate_set(10,0,10,0,-90,90,1000);
+    delay(2000);
+    
+    arm.coordinate_set(15,0,10+offset,0,-90,90,1000);
+    delay(1000);
+
+    arm.coordinate_set(20,0,10+offset,0,-90,90,1000);
+    delay(1000);
+
+    arm.coordinate_set(25,0,10+offset,0,-90,90,1000);
+    delay(1000);
+
+    arm.coordinate_set(30,0,10+offset,0,-90,90,1000);
+    delay(1000);
+
+    while (true) {
+      arm.coordinate_set(35,0,10+offset,0,-90,90,1000);
+      delay(2000);  
+    }
+
+  }
+
+
 
   delay(10); // Keeps BLE alive
   
