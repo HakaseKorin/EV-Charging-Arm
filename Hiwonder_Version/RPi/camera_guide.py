@@ -73,6 +73,9 @@ class Camera_Guide():
 
         center_x = self.__img_w // 2
         result = abs(center_x - self.__box_x)
+
+        print(f"margins x: {margins}")
+        print(f"results x: {result}")
         
         if result > margins:
             # tell to adjust left
@@ -88,6 +91,9 @@ class Camera_Guide():
 
         center_y = self.__img_h // 2
         result = abs(center_y - self.__box_y)
+
+        print(f"margins x: {margins}")
+        print(f"results x: {result}")
         
         if result > margins:
             # tell to adjust left
