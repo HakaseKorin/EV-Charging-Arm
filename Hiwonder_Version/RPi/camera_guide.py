@@ -98,7 +98,7 @@ class Camera_Guide():
         
         if result > margins:
             # adjust up
-            if center_y > self.__box_:
+            if center_y > self.__box_y:
                 return -1
             # adjust down
             else:
