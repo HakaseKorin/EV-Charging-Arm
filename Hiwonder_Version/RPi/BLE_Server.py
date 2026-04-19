@@ -51,6 +51,9 @@ async def main():
                     break
                 print("No viable target located, please try again..")
                 time.sleep(5)
+            
+            camera.start()
+
             while True:
                 # Horizontal alignment
                 horz_result = camera.check_horz()
