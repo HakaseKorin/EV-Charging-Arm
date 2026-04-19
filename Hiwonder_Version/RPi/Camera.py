@@ -1,9 +1,12 @@
+from bleak import BleakClient, BleakScanner
 from typing import Tuple, Optional, Union
 from picamera2 import Picamera2 
 from ultralytics import YOLO 
 from PIL import Image
 import numpy as np
+import asyncio
 import shutil
+import time
 import cv2
 import os
 
@@ -21,6 +24,29 @@ folder_path = "../../runs/detect"
 home_dir = os.environ["HOME"]
 
 Coord = Union[Tuple[int,int], Tuple[float,float]]
+image_dim = []
+bounding_box_dim = []
+
+async def scan_and_connect():
+    global device
+    
+    retries = 0
+    while True:
+        print(f"Scanning for device {DEVICE_NAME}")
+        device = await BleakScanner.find_device_by_name(DEVICE_NAME)
+
+        # Breaks out of loop once a connection is found
+        if device is not None:
+            print(f"Connected to {DEVICE_NAME} at...",device.address)
+            break
+        
+        print("No device found.. Now attemping to reconnect.. (30s)")
+        
+        # Do use asyncio.sleep() in an asyncio program.
+        await asyncio.sleep(30)
+        retries += 1
+        #TODO: change to properly end program
+        if retries>10: return
 
 def draw_crosshair_cv(
     img: np.ndarray,
@@ -96,15 +122,18 @@ def cleanup():
         print(f"An error occurred: {e}")
 
 def startup():
+        global image_dim
+
         img = cv2.imread("updated.jpg")
-        h, w = img.shape[:2]
-        return [h,w]
+        image_dim = img.shape[:2]
+        print(image_dim[0])
+        print(image_dim[1])
+
+        return
 
 def locate_socket():
-    cx = 0
-    cy = 0
-    bw = 0
-    bh = 0
+    global bounding_box_dim
+
     print("Finding Socket..")
     # Run inference with boxes automatically drawn & saved
     results = model("current.jpg", save=True, name=".")
@@ -114,8 +143,10 @@ def locate_socket():
         # Access the Boxes object
         boxes = result.boxes
         #print(boxes.xywh)
-        values = boxes.xywh.tolist()
-        print(values)
+        bounding_box_dim = boxes.xywh.tolist()
+        print(bounding_box_dim[0])
+        print(bounding_box_dim[1])
+
 
     img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
     out = draw_crosshair_cv(img, center=None)         # center
@@ -160,6 +191,37 @@ def check_vert(bounding_y):
             return 1
         # no change needed
         return 0;
+
+async def main():
+    await scan_and_connect()
+
+    disconnect_event = asyncio.Event()
+
+    time.sleep(2)
+
+    # do all the back and forth in here..
+    try:
+        async with BleakClient(
+            device, disconnected_callback=lambda c: disconnect_event.set()
+        ) as client:
+            while True:
+                input("System Ready, Press Enter to continue..")
+                # TakePhoto
+                take_photo()
+                # Locate Socket
+                if locate_socket():
+                    break
+                print("No Viable Target Located, Please Try again..")
+                time.sleep(5)
+
+            while True:
+                break
+                # Horizontal alignment
+                # Vertical alignment
+                
+    except Exception:
+        print("Exception while connecting/connected", Exception)
+
 
 take_photo()
 locate_socket()
