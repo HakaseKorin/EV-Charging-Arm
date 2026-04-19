@@ -144,8 +144,8 @@ def locate_socket():
         boxes = result.boxes
         #print(boxes.xywh)
         bounding_box_dim = boxes.xywh.tolist()
-        print(bounding_box_dim[0])
-        print(bounding_box_dim[1])
+        print(bounding_box_dim[0][0])
+        print(bounding_box_dim[0][1])
 
 
     img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
@@ -221,7 +221,6 @@ async def main():
                 
     except Exception:
         print("Exception while connecting/connected", Exception)
-
 
 take_photo()
 locate_socket()
