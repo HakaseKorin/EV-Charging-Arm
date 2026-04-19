@@ -1,11 +1,34 @@
-import asyncio
 from bleak import BleakClient, BleakScanner
-import time
 from camera_guide import Camera_Guide
+import RPi.GPIO as GPIO
+import asyncio
+import time
 
 SERVICE_UUID = "12345678-1234-5678-1234-56789abcdef0"
 CHAR_UUID     = "12345678-1234-5678-1234-56789abcdef1"
 DEVICE_NAME="ESP32_Server"
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(17, GPIO.OUT)
+GPIO.setup(27, GPIO.OUT)
+GPIO.setup(22, GPIO.OUT)
+GPIO.setup(23, GPIO.OUT)
+
+def track_state():
+    print("Standby")
+    GPIO.output(17,GPIO.HIGH)
+    time.sleep(3)
+
+    # Docking
+    print("Docking")
+    GPIO.output(27,GPIO.HIGH)
+    time.sleep(5)
+
+    # Charging
+    print("Charging")
+    GPIO.output(22,GPIO.HIGH)
+    time.sleep(5)
+
 
 async def scan_and_connect():
     global device
