@@ -96,12 +96,15 @@ def cleanup():
         print(f"An error occurred: {e}")
 
 def startup():
-        img = cv2.imread("update.jpg")
+        img = cv2.imread("updated.jpg")
         h, w = img.shape[:2]
         return [h,w]
 
 def locate_socket():
-    cx = cy = bw = by = 0
+    cx = 0
+    cy = 0
+    bw = 0
+    bh = 0
     print("Finding Socket..")
     # Run inference with boxes automatically drawn & saved
     results = model("current.jpg", save=True, name=".")
@@ -110,8 +113,8 @@ def locate_socket():
     for result in results:
         # Access the Boxes object
         boxes = result.boxes
-        print(boxes.xywh)
-        #cx, cy, bw, bh = boxes.xywh
+        #print(boxes.xywh)
+        cx, cy, bw, bh = boxes.xywh
 
     img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
     out = draw_crosshair_cv(img, center=None)         # center
