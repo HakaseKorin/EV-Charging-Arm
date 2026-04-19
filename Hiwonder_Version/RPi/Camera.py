@@ -4,7 +4,6 @@ from ultralytics import YOLO
 from PIL import Image
 import numpy as np
 import shutil
-import time
 import cv2
 import os
 
@@ -12,14 +11,17 @@ SERVICE_UUID = "12345678-1234-5678-1234-56789abcdef0"
 CHAR_UUID     = "12345678-1234-5678-1234-56789abcdef1"
 DEVICE_NAME="ESP32_Server"
 
-home_dir = os.environ["HOME"]
+model = YOLO(r"ev_socket_model.pt")
 
 cam = Picamera2()
 config = cam.create_still_configuration()
 cam.configure(config)
 
-Coord = Union[Tuple[int,int], Tuple[float,float]]
 folder_path = "../../runs/detect"
+home_dir = os.environ["HOME"]
+
+Coord = Union[Tuple[int,int], Tuple[float,float]]
+cx,cy ,w ,h, bw, bh = 0 
 
 def draw_crosshair_cv(
     img: np.ndarray,
@@ -75,55 +77,15 @@ def draw_crosshair_cv(
     if return_img:
         return out
 
-
-cam.start()
-
-print("Taking Picture..")
-time.sleep(2)
-cam.capture_file(f"{home_dir}/EV-Charging-Arm/Hiwonder_Version/RPi/current.jpg")
-print("Saved Picture")
-
-# Load trained model
-model = YOLO(r"ev_socket_model.pt")
-print("Finding Socket..")
-
-# Run inference with boxes automatically drawn & saved
-results = model("current.jpg", save=True, name=".")
-#img = Image.open("current.jpg")
-
-for result in results:
-    # Access the Boxes object
-    boxes = result.boxes
-
 def take_photo():
-    cx = 0 
-    cy = 0
-    w = 0
-    h = 0
-
     cam.start()
 
     print("Taking Picture..")
-    time.sleep(1)
-
     cam.capture_file(f"{home_dir}/EV-Charging-Arm/Hiwonder_Version/RPi/current.jpg")
-    print("Saved Picture")
-    time.sleep(1)
 
-    print("Finding Socket..")
-    # Run inference with boxes automatically drawn & saved
-    results = model("current.jpg", save=True, name=".")
-    #img = Image.open("current.jpg")
+    print("Picture Saved..")
 
-    for result in results:
-        # Access the Boxes object
-        boxes = result.boxes
-        cx, cy, w, h = boxes.xywh
-
-    img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
-    out = draw_crosshair_cv(img, center=None)         # center
-    cv2.imwrite("updated.jpg", out)
-
+def cleanup():
     try:
         shutil.rmtree(folder_path)
         print(f"Folder '{folder_path}' and all its contents have been deleted.")
@@ -133,26 +95,65 @@ def take_photo():
         print(f"Permission denied to delete '{folder_path}'.")
     except Exception as e:
         print(f"An error occurred: {e}")
-    
-        # Check if any objects were detected
+
+def startup():
+        img = cv2.imread("update.jpg")
+        h, w = img.shape[:2]
+
+def locate_socket():
+    print("Finding Socket..")
+    # Run inference with boxes automatically drawn & saved
+    results = model("current.jpg", save=True, name=".")
+
+    for result in results:
+        # Access the Boxes object
+        boxes = result.boxes
+        cx, cy, bw, bh = boxes.xywh
+
+    img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
+    out = draw_crosshair_cv(img, center=None)         # center
+    cv2.imwrite("updated.jpg", out)
+
+    cleanup()
+
     # Check if any objects were detected
     if len(boxes) > 0:
         print(True)
     else:
         print(False)
 
-img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
-out = draw_crosshair_cv(img, center=None)         # center
-cv2.imwrite("updated.jpg", out)
+def check_horz(bounding_x):
+        margins = int(w * .05)
 
-try:
-    shutil.rmtree(folder_path)
-    print(f"Folder '{folder_path}' and all its contents have been deleted.")
-except FileNotFoundError:
-    print(f"The folder '{folder_path}' does not exist.")
-except PermissionError:
-    print(f"Permission denied to delete '{folder_path}'.")
-except Exception as e:
-    print(f"An error occurred: {e}")
+        center_x = w // 2
+        result = abs(center_x - bounding_x)
+        
+        if result > margins:
+            # tell to adjust left
+            return -1
+        if result < margins:
+            # tell to adjust right
+            return 1
+        # no change needed
+        return 0;
+
+def check_vert(bounding_y):
+        margins = int(h * .05)
+
+        center_y = h // 2
+        result = abs(center_y - bounding_y)
+        
+        if result > margins:
+            # tell to adjust left
+            return -1
+        if result < margins:
+            # tell to adjust right
+            return 1
+        # no change needed
+        return 0;
+
+take_photo()
+locate_socket()
+startup()
 
 input("Press enter to exit")
