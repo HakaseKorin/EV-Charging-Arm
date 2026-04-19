@@ -69,10 +69,10 @@ class Camera_Guide():
             return False
 
     def check_horz(self):
-        margins = int(self.__img_w * .1)
+        margins = int(self.get_image_w * .1)
 
-        center_x = self.__img_w // 2
-        result = abs(center_x - self.__box_x)
+        center_x = self.get_image_w // 2
+        result = abs(center_x - self.get_box_x)
 
         print(f"margins x: {margins}")
         print(f"results x: {result}")
@@ -87,10 +87,10 @@ class Camera_Guide():
         return 0;
 
     def check_vert(self):
-        margins = int(self.__img_h * .1)
+        margins = int(self.get_image_h * .1)
 
-        center_y = self.__img_h // 2
-        result = abs(center_y - self.__box_y)
+        center_y = self.get_image_h // 2
+        result = abs(center_y - self.get_box_y)
 
         print(f"margins x: {margins}")
         print(f"results x: {result}")
@@ -173,6 +173,7 @@ if __name__ == "__main__":
 
     camera.take_photo()
     camera.locate_socket()
+    camera.startup()
     print(camera.check_horz())
     print(camera.check_vert())
 
