@@ -129,20 +129,6 @@ def draw_crosshair_cv(
     relative: bool = False,
     return_img: bool = True
 ) -> np.ndarray:
-    """
-    Draws a crosshair on an OpenCV image (numpy BGR array).
-
-    - img: input image as numpy array (BGR). Will not be modified unless you reassign the return.
-    - center: (x, y). If None, default is image center.
-              If relative=True, provide floats in [0,1] meaning fraction of width/height.
-    - color: BGR tuple (default green).
-    - size: half-length of each crosshair arm in pixels.
-    - thickness: line thickness.
-    - relative: whether center is relative (fractions) or absolute (pixels).
-    - return_img: whether to return the modified image.
-
-    Returns the modified image (copy).
-    """
     if img is None:
         raise ValueError("img must be a numpy array (loaded with cv2.imread or created).")
     h, w = img.shape[:2]
@@ -173,3 +159,11 @@ def draw_crosshair_cv(
 
     if return_img:
         return out
+    
+    if __name__ == "__main__":
+        folder_path = "../../runs/detect"
+        camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
+
+        camera.take_photo()
+        camera.locate_socket()
+
