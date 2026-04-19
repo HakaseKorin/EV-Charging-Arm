@@ -1,10 +1,8 @@
-from bleak import BleakClient, BleakScanner
 from typing import Tuple, Optional, Union
 from picamera2 import Picamera2 
 from ultralytics import YOLO 
 from PIL import Image
 import numpy as np
-import asyncio
 import shutil
 import time
 import cv2
@@ -22,7 +20,6 @@ cam.configure(config)
 
 Coord = Union[Tuple[int,int], Tuple[float,float]]
 folder_path = "../../runs/detect"
-model = YOLO(r"ev_socket_model.pt")
 
 def draw_crosshair_cv(
     img: np.ndarray,
@@ -79,27 +76,24 @@ def draw_crosshair_cv(
         return out
 
 
-async def scan_and_connect():
-    global device
-    
-    retries = 0
-    while True:
-        print(f"Scanning for device {DEVICE_NAME}")
-        device = await BleakScanner.find_device_by_name(DEVICE_NAME)
+cam.start()
 
-        # Breaks out of loop once a connection is found
-        if device is not None:
-            print(f"Connected to {DEVICE_NAME} at...",device.address)
-            break
-        
-        print("No device found.. Now attemping to reconnect.. (30s)")
-        
-        # Do use asyncio.sleep() in an asyncio program.
-        await asyncio.sleep(30)
-        retries += 1
-        #TODO: change to properly end program
-        if retries>10: return
+print("Taking Picture..")
+time.sleep(2)
+cam.capture_file(f"{home_dir}/EV-Charging-Arm/Hiwonder_Version/RPi/current.jpg")
+print("Saved Picture")
 
+# Load trained model
+model = YOLO(r"ev_socket_model.pt")
+print("Finding Socket..")
+
+# Run inference with boxes automatically drawn & saved
+results = model("current.jpg", save=True, name=".")
+#img = Image.open("current.jpg")
+
+for result in results:
+    # Access the Boxes object
+    boxes = result.boxes
 
 def take_photo():
     cx = 0 
@@ -141,60 +135,24 @@ def take_photo():
         print(f"An error occurred: {e}")
     
         # Check if any objects were detected
+    # Check if any objects were detected
     if len(boxes) > 0:
-        return True
+        print(True)
     else:
-        return False
+        print(False)
 
+img = cv2.imread(f"{folder_path}/current.jpg")                     # BGR
+out = draw_crosshair_cv(img, center=None)         # center
+cv2.imwrite("updated.jpg", out)
 
-async def main():
-    await scan_and_connect()
+try:
+    shutil.rmtree(folder_path)
+    print(f"Folder '{folder_path}' and all its contents have been deleted.")
+except FileNotFoundError:
+    print(f"The folder '{folder_path}' does not exist.")
+except PermissionError:
+    print(f"Permission denied to delete '{folder_path}'.")
+except Exception as e:
+    print(f"An error occurred: {e}")
 
-    disconnect_event = asyncio.Event()
-
-    ser = serial.Serial("/dev/serial0",9600,timeout=1)
-    time.sleep(2)
-
-    # do all the back and forth in here..
-    try:
-        async with BleakClient(
-            device, disconnected_callback=lambda c: disconnect_event.set()
-        ) as client:
-            while True:
-                
-                #waiting for press to start
-                input("Press Enter to Begin")
-
-                # take first photo
-                if take_photo():
-                    # send commands to realign robot arm head and thrust forward
-                    pass
-                else:
-                    # send Error code and end
-                    return
-
-                if ser.in_waiting:
-                    data = ser.readline().decode(errors="ignore").strip()
-                    if data:
-                        print("Received:", data)
-
-                        if len(data) > 1:
-                            commands = list(data)
-                            for _ in commands:
-                                msg = _
-                                data = msg.encode()
-                                await client.write_gatt_char(CHAR_UUID, data, response=True)
-                                print("Sent:", msg)
-                        else:
-                            msg = data
-                            data = msg.encode()
-                            await client.write_gatt_char(CHAR_UUID, data, response=True)
-                            print("Sent:", msg)
-                        data = None # resets to none to wait for new input
-
-    except Exception:
-        print("Exception while connecting/connected", Exception)
-
-
-take_photo()
 input("Press enter to exit")
