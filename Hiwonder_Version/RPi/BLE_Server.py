@@ -16,6 +16,7 @@ GPIO.setup(23, GPIO.OUT)
 
 def charging_in_progress():
     print("Now charging..")
+    time.sleep(3)
     GPIO.output(23,GPIO.HIGH)
 
 def disconnect():
@@ -146,7 +147,7 @@ async def main():
             # Give command to approach
             disconnect()
             docking()
-            time.sleep(5)
+            time.sleep(4)
             standby()
             input("Press Enter to End Simulation")
                
