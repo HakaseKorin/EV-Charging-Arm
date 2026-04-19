@@ -88,11 +88,13 @@ async def main():
                     break
                 if(horz_result == -1):
                     print("Please adjust your vehicle right")
-                    #camera.show_image()
+                    camera.take_photo()
+                    camera.locate_socket()
                     input("Press Enter to try again..")
                 if(horz_result == 1):
                     print("Please adjust your vehicle left")
-                    #camera.show_image()
+                    camera.take_photo()
+                    camera.locate_socket()
                     input("Press Enter to try again..")
             while True:
                 # Vertical alignment
