@@ -220,6 +220,8 @@ void loop() {
   if (pendingCommand != 0) {
     uint8_t cmd = pendingCommand;
     pendingCommand = 0;
+    cmd = cmd + 1
+    Serial.println(cmd);
   // Safe to run long servos here
   }
 
