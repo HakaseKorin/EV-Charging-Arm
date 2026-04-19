@@ -9,7 +9,6 @@ import shutil
 import time
 import cv2
 import os
-import time
 
 SERVICE_UUID = "12345678-1234-5678-1234-56789abcdef0"
 CHAR_UUID     = "12345678-1234-5678-1234-56789abcdef1"
