@@ -250,7 +250,7 @@ void loop() {
     arm.coordinate_set(10,0,10,0,-90,90,1000);
     delay(2000);
     Serial.println(correction);
-    Serial.println("waiting on alignment..")
+    Serial.println("waiting on alignment..");
   }
 
   // waiting for command aligned
@@ -258,7 +258,7 @@ void loop() {
     // waiting for offset numbers to come in
     while(true) {
       if ( correction != "aligned" ) { break; }
-      Serial.print("waiting for offset..")
+      Serial.print("waiting for offset..");
       Serial.println(correction);
     }
 
@@ -289,7 +289,7 @@ void loop() {
       }
       arm.coordinate_set(35,0,10+offset,0,-90,90,1000);
       delay(2000);
-      Serial.println("Waiting for disconnect..")
+      Serial.println("Waiting for disconnect..");
       Serial.println(correction);
     }
 
@@ -309,7 +309,7 @@ void loop() {
     arm.coordinate_set(10,0,10,0,-90,90,1000);
     delay(2000);
 
-    Serial.println("disconnect complete..")
+    Serial.println("disconnect complete..");
     
   }
   
