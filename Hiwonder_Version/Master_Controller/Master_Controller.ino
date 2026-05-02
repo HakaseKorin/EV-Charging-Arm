@@ -249,6 +249,8 @@ void loop() {
     
     arm.coordinate_set(10,0,10,0,-90,90,1000);
     delay(2000);
+    Serial.println(correction);
+    Serial.println("waiting on alignment..")
   }
 
   // waiting for command aligned
@@ -256,6 +258,8 @@ void loop() {
     // waiting for offset numbers to come in
     while(true) {
       if ( correction != "aligned" ) { break; }
+      Serial.print("waiting for offset..")
+      Serial.println(correction);
     }
 
     // perform alignment and connection
@@ -284,7 +288,9 @@ void loop() {
         break;
       }
       arm.coordinate_set(35,0,10+offset,0,-90,90,1000);
-      delay(2000);  
+      delay(2000);
+      Serial.println("Waiting for disconnect..")
+      Serial.println(correction);
     }
 
     // performs disconnect sequence after receving command
@@ -303,6 +309,8 @@ void loop() {
     arm.coordinate_set(10,0,10,0,-90,90,1000);
     delay(2000);
 
+    Serial.println("disconnect complete..")
+    
   }
   
   delay(10); // Keeps BLE alive
