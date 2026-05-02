@@ -243,13 +243,22 @@ void loop() {
   //Serial.println("loop is running..");
   
 
-  if (pendingCommand != 0) {
-    uint8_t cmd = pendingCommand;
-    Serial.println(pendingCommand);
-    pendingCommand = 0;
+  // standby
+  while( true ) {
+    if ( correction == "aligned" ) { break; }
+    
+    arm.coordinate_set(10,0,10,0,-90,90,1000);
+    delay(2000);
   }
 
-  if ( !correction.isEmpty() ) {
+  // waiting for command aligned
+  if ( correction == "aligned" ) {
+    // waiting for offset numbers to come in
+    while(true) {
+      if ( correction != "aligned" ) { break; }
+    }
+
+    // perform alignment and connection
     int offset = std::atoi(correction.c_str());
     arm.coordinate_set(20,0,20,0,-90,90,1000);
     delay(2000);
@@ -269,6 +278,7 @@ void loop() {
     arm.coordinate_set(30,0,10+offset,0,-90,90,1000);
     delay(1000);
 
+    // keeps arm docked
     while (true) {
       if ( correction == "disconnect") {
         break;
@@ -277,26 +287,25 @@ void loop() {
       delay(2000);  
     }
 
-    if (correction == "disconnect") {
-      arm.coordinate_set(30,0,10,0,-90,90,1000);
-      delay(1000);
-      
-      arm.coordinate_set(25,0,10,0,-90,90,1000);
-      delay(1000);
-      
-      arm.coordinate_set(20,0,10,0,-90,90,1000);
-      delay(1000);
-      
-      arm.coordinate_set(15,0,10,0,-90,90,1000);
-      delay(1000);
+    // performs disconnect sequence after receving command
+    arm.coordinate_set(30,0,10,0,-90,90,1000);
+    delay(1000);
+    
+    arm.coordinate_set(25,0,10,0,-90,90,1000);
+    delay(1000);
+    
+    arm.coordinate_set(20,0,10,0,-90,90,1000);
+    delay(1000);
+    
+    arm.coordinate_set(15,0,10,0,-90,90,1000);
+    delay(1000);
 
-      arm.coordinate_set(10,0,10,0,-90,90,1000);
-      delay(2000);
-    }
+    arm.coordinate_set(10,0,10,0,-90,90,1000);
+    delay(2000);
 
   }
-  Serial.println(correction);
+  
   delay(10); // Keeps BLE alive
+}
   
 
-}

@@ -116,6 +116,12 @@ async def main():
                     camera.locate_socket()
                     input("Press Enter to try again..")
             while True:
+                
+                # Tells arm that vehicle is aligned within bounds
+                message = "aligned"
+                data = message.encode()
+                await client.write_gatt_char(CHAR_UUID, data, response=True)
+
                 # Vertical alignment
                 vert_result = camera.check_vert()
                 if(vert_result == 0):
@@ -151,9 +157,6 @@ async def main():
             docking()
             time.sleep(4)
             standby()
-            message = ""
-            data = message.encode()
-            await client.write_gatt_char(CHAR_UUID, data, response=True)
             input("Press Enter to End Simulation")
                
 
