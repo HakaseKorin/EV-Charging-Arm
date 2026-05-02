@@ -219,10 +219,12 @@ async def main():
     except Exception:
         print("Exception while connecting/connected", Exception)
 
-take_photo()
-locate_socket()
-startup()
-check_horz(bounding_box_dim[0][0])
-check_vert(bounding_box_dim[0][1])
 
-input("Press enter to exit")
+if __name__ == "__main__":
+    take_photo()
+    locate_socket()
+    startup()
+    check_horz(bounding_box_dim[0][0])
+    check_vert(bounding_box_dim[0][1])
+
+    input("Press enter to exit")
