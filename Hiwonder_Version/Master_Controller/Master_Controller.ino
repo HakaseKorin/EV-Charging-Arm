@@ -56,7 +56,7 @@ class MyServerCallbacks : public BLEServerCallbacks {
     Serial.println("Client connected");
   }
   
-  void onDisconnect() {
+  void onDisconnect(BLEServer* pServer) {
     Serial.println("Client disconnected");
 
     delay(800);
@@ -65,7 +65,7 @@ class MyServerCallbacks : public BLEServerCallbacks {
 
     Serial.println("Advertising restarted");
   }
-  }
+};
 
 
 
@@ -249,7 +249,7 @@ void loop() {
     pendingCommand = 0;
   }
 
-  if (correction != "" ) {
+  if ( !correction.isEmpty() ) {
     int offset = std::atoi(correction.c_str());
     arm.coordinate_set(20,0,20,0,-90,90,1000);
     delay(2000);
@@ -270,7 +270,9 @@ void loop() {
     delay(1000);
 
     while (true) {
-      if ( correction == "disconnect") {break;}
+      if ( correction == "disconnect") {
+        break;
+      }
       arm.coordinate_set(35,0,10+offset,0,-90,90,1000);
       delay(2000);  
     }
@@ -288,17 +290,12 @@ void loop() {
       arm.coordinate_set(15,0,10,0,-90,90,1000);
       delay(1000);
 
-      while(true) {
-        arm.coordinate_set(10,0,10,0,-90,90,1000);
-        delay(2000);
-      }
-
+      arm.coordinate_set(10,0,10,0,-90,90,1000);
+      delay(2000);
     }
 
   }
-
-
-
+  Serial.println(correction);
   delay(10); // Keeps BLE alive
   
 
