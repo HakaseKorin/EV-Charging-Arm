@@ -51,6 +51,24 @@ class MyCallbacks : public BLECharacteristicCallbacks {
   }
 };
 
+class MyServerCallbacks : public BLEServerCallbacks {
+  void onConnect(BLEServer* pServer) {
+    Serial.println("Client connected");
+  }
+  
+  void onDisconnect() {
+    Serial.println("Client disconnected");
+
+    delay(800);
+    
+    pServer->getAdvertising()->start();
+
+    Serial.println("Advertising restarted");
+  }
+  }
+
+
+
 void setup() {
   delay(1000);
   pinMode(IO_BLE_CTL, OUTPUT);
@@ -71,6 +89,7 @@ void setup() {
   // BLE SERVER initializes Server
   BLEDevice::init("ESP32_Server");
   BLEServer *pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks);
   BLEService *pService = pServer->createService(SERVICE_UUID);
 
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(
@@ -82,6 +101,7 @@ void setup() {
 
   pService->start();
   BLEDevice::startAdvertising();
+
 
   Serial.println("BLE Server Ready. Waiting for client writes...");
 

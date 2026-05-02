@@ -157,6 +157,7 @@ async def main():
     except Exception:
         print("Exception while connecting/connected", Exception)
 
+# TODO Implement gui that works with threads
 async def remote_worker(command_queue, status_queue):
     # should mirror main() but uses queue to coordinate everything.
     status_queue.put("Initializing system..")
