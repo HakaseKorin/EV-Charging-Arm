@@ -121,6 +121,7 @@ async def main():
                 message = "aligned"
                 data = message.encode()
                 await client.write_gatt_char(CHAR_UUID, data, response=True)
+                asyncio.wait(5)
 
                 # Vertical alignment
                 vert_result = camera.check_vert()
