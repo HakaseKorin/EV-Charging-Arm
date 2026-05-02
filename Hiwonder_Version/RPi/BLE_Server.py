@@ -2,6 +2,7 @@ from bleak import BleakClient, BleakScanner
 from camera_guide import Camera_Guide
 import RPi.GPIO as GPIO
 import asyncio
+import queue
 import time
 
 SERVICE_UUID = "12345678-1234-5678-1234-56789abcdef0"
@@ -83,6 +84,7 @@ async def main():
             device, disconnected_callback=lambda c: disconnect_event.set()
         ) as client:
             while True:
+                
                 input("System Ready, Press Enter to continue..")
                 standby()
                 camera.take_photo()
@@ -154,5 +156,111 @@ async def main():
 
     except Exception:
         print("Exception while connecting/connected", Exception)
+
+async def remote_worker(command_queue, status_queue):
+    # should mirror main() but uses queue to coordinate everything.
+    status_queue.put("Initializing system..")
+    folder_path = "../../runs/detect"
+    camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
+
+    status_queue.put("Async system starting..")
+    await scan_and_connect()
+
+    disconnect_event = asyncio.Event()
+
+    try: 
+        cmd = command_queue.get_nowait()
+    except:
+        cmd = None
+
+    # do all the back and forth in here..
+    try:
+        async with BleakClient(
+            device, disconnected_callback=lambda c: disconnect_event.set()
+        ) as client:
+            while True:
+                
+                #input("System Ready, Press Enter to continue..")
+                while True:
+                    if cmd == "CAPTURE":
+                        break
+                
+                standby()
+                camera.take_photo()
+                # Locate Socket
+                if camera.locate_socket():
+                    break
+                print("No viable target located, please try again..")
+                time.sleep(5)
+            
+            camera.startup()
+
+            while True:
+                # Horizontal alignment
+                horz_result = camera.check_horz()
+                if(horz_result == 0):
+                    print("Please do not move vehicle while arm is in motion..")
+                    time.sleep(1)
+
+                    #camera.show_image()
+                    break
+                if(horz_result == -1):
+                    print("Please adjust your vehicle right")
+                    camera.take_photo()
+                    camera.locate_socket()
+                    #input("Press Enter to try again..")
+                    while True:
+                        if cmd == "RETRY":
+                            break
+                if(horz_result == 1):
+                    print("Please adjust your vehicle left")
+                    camera.take_photo()
+                    camera.locate_socket()
+                    #input("Press Enter to try again..")
+                    while True:
+                        if cmd == "RETRY":
+                            break
+            while True:
+                # Vertical alignment
+                vert_result = camera.check_vert()
+                if(vert_result == 0):
+                    print("Arm within tolerances, beginning approach..")
+                    docking()
+                    time.sleep(1)
+                    break
+                if(vert_result < 0):
+                    # adjust up
+                    data = str(vert_result).encode()
+                    await client.write_gatt_char(CHAR_UUID, data, response=True)
+                    print("Adjusting arm upwards..")
+                    docking()
+                    time.sleep(1)
+                    break
+                if(vert_result > 0):
+                    # adjust down
+                    data = str(vert_result).encode()
+                    await client.write_gatt_char(CHAR_UUID, data, response=True)
+                    print("Adjusting arm downwards..")
+                    docking()
+                    time.sleep(1)
+                    break
+            time.sleep(7)
+            print("Device is now connected..")
+            charging()
+            input("Press Enter to Disconnect..")
+            message = "disconnect"
+            data = message.encode()
+            await client.write_gatt_char(CHAR_UUID, data, response=True)
+            # Give command to approach
+            disconnect()
+            docking()
+            time.sleep(4)
+            standby()
+            input("Press Enter to End Simulation")
+               
+
+    except Exception:
+        print("Exception while connecting/connected", Exception)
+
 
 asyncio.run(main())
