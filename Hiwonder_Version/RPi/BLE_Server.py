@@ -151,6 +151,9 @@ async def main():
             docking()
             time.sleep(4)
             standby()
+            message = ""
+            data = message.encode()
+            await client.write_gatt_char(CHAR_UUID, data, response=True)
             input("Press Enter to End Simulation")
                
 
