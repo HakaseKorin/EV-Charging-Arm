@@ -228,10 +228,10 @@ async def remote_worker(command_queue, status_queue):
                         break
                     if(horz_result == -1):
                         status_queue.put("NOT_ALIGNED")
-                        status_queue.put("ADJUST_VEHICLE_BACKWARDS")
+                        status_queue.put("ADJUST_VEHICLE_FORWARDS")
                     if(horz_result == 1):
                         status_queue.put("NOT_ALIGNED")
-                        status_queue.put("ADJUST_VEHICLE_FORWARDS")
+                        status_queue.put("ADJUST_VEHICLE_BACKWARDS")
 
                     camera.take_photo()
                     camera.locate_socket()
@@ -256,11 +256,11 @@ async def remote_worker(command_queue, status_queue):
                     if(vert_result > 0):
                         # adjust up
                         status_queue.put("STARTING_APPROACH")
-                        status_queue.put("ADJUSTING UPWARDS")
+                        status_queue.put("ADJUSTING_UPWARDS")
                     if(vert_result < 0):
                         # adjust down
                         status_queue.put("STARTING_APPROACH")
-                        status_queue.put("ADJUSTING BACKWARDS")
+                        status_queue.put("ADJUSTING_DOWNWARDS")
                     data = str(vert_result).encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     docking()

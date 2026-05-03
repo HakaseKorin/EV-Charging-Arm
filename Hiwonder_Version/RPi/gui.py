@@ -90,6 +90,12 @@ class ControllerGui:
                 self.__button.config(
                     state="disabled"
                 )
+            if msg == "":
+                self.__button.config(
+                    state="active",
+                    text="Restart",
+                    command=self.finish
+                )
         self.__root.after(100,self.update_gui)
             
     def run(self):
