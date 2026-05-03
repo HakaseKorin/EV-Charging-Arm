@@ -180,6 +180,8 @@ async def remote_worker(command_queue, status_queue):
     folder_path = "../../runs/detect"
     camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
 
+    restart = True
+
     status_queue.put("CONNECTING_TO_DEVICE")
     await scan_and_connect()
 
@@ -195,92 +197,94 @@ async def remote_worker(command_queue, status_queue):
         async with BleakClient(
             device, disconnected_callback=lambda c: disconnect_event.set()
         ) as client:
-            while True:
-                
-                # wait for command CAPTURE from gui
-                status_queue.put("SYSTEM_READY")
-                awaitingCommand("CAPTURE", command_queue)
-                
-                standby()
-                camera.take_photo()
-                
-                # Locate Socket
-                status_queue.put("FINDING_TARGET")
-                if camera.locate_socket():
-                    break
-                status_queue.put("NO_TARGET_FOUND")
-                time.sleep(5)
             
-            camera.startup()
-
-            while True:
-                # Horizontal alignment
-                horz_result = camera.check_horz()
-                if(horz_result == 0):
-                    status_queue.put("CAUTION_STAND_CLEAR_OF_ARM")
-                    time.sleep(1)
-
-                    #camera.show_image()
-                    break
-                if(horz_result == -1):
-                    status_queue.put("NOT_ALIGNED")
-                    status_queue.put("ADJUST_VEHICLE_BACKWARDS")
-                if(horz_result == 1):
-                    status_queue.put("NOT_ALIGNED")
-                    status_queue.put("ADJUST_VEHICLE_FORWARDS")
-
-                camera.take_photo()
-                camera.locate_socket()
-
-                awaitingCommand("RETRY", command_queue)
-            while True:
+            while restart:
+                while True:
+                    
+                    # wait for command CAPTURE from gui
+                    status_queue.put("SYSTEM_READY")
+                    awaitingCommand("CAPTURE", command_queue)
+                    
+                    standby()
+                    camera.take_photo()
+                    
+                    # Locate Socket
+                    status_queue.put("FINDING_TARGET")
+                    if camera.locate_socket():
+                        break
+                    status_queue.put("NO_TARGET_FOUND")
+                    time.sleep(5)
                 
-                # Tells arm that vehicle is aligned within bounds
-                message = "aligned"
-                data = message.encode()
-                await client.write_gatt_char(CHAR_UUID, data, response=True)
-                time.sleep(5)
+                camera.startup()
 
-                # Vertical alignment
-                vert_result = camera.check_vert()
-                if(vert_result == 0):
-                    print("Arm within tolerances, beginning approach..")
-                    status_queue.put("STARTING_APPROACH")
+                while True:
+                    # Horizontal alignment
+                    horz_result = camera.check_horz()
+                    if(horz_result == 0):
+                        status_queue.put("CAUTION_STAND_CLEAR_OF_ARM")
+                        time.sleep(1)
+
+                        #camera.show_image()
+                        break
+                    if(horz_result == -1):
+                        status_queue.put("NOT_ALIGNED")
+                        status_queue.put("ADJUST_VEHICLE_BACKWARDS")
+                    if(horz_result == 1):
+                        status_queue.put("NOT_ALIGNED")
+                        status_queue.put("ADJUST_VEHICLE_FORWARDS")
+
+                    camera.take_photo()
+                    camera.locate_socket()
+
+                    awaitingCommand("RETRY", command_queue)
+                while True:
+                    
+                    # Tells arm that vehicle is aligned within bounds
+                    message = "aligned"
+                    data = message.encode()
+                    await client.write_gatt_char(CHAR_UUID, data, response=True)
+                    time.sleep(5)
+
+                    # Vertical alignment
+                    vert_result = camera.check_vert()
+                    if(vert_result == 0):
+                        print("Arm within tolerances, beginning approach..")
+                        status_queue.put("STARTING_APPROACH")
+                        docking()
+                        time.sleep(1)
+                        break
+                    if(vert_result > 0):
+                        # adjust up
+                        status_queue.put("STARTING_APPROACH")
+                        status_queue.put("ADJUSTING UPWARDS")
+                    if(vert_result < 0):
+                        # adjust down
+                        status_queue.put("STARTING_APPROACH")
+                        status_queue.put("ADJUSTING BACKWARDS")
+                    data = str(vert_result).encode()
+                    await client.write_gatt_char(CHAR_UUID, data, response=True)
                     docking()
                     time.sleep(1)
                     break
-                if(vert_result > 0):
-                    # adjust up
-                    status_queue.put("STARTING_APPROACH")
-                    status_queue.put("ADJUSTING UPWARDS")
-                if(vert_result < 0):
-                    # adjust down
-                    status_queue.put("STARTING_APPROACH")
-                    status_queue.put("ADJUSTING BACKWARDS")
-                data = str(vert_result).encode()
+                time.sleep(7)
+                status_queue.put("DOCKING_COMPLETE")
+                charging()
+                awaitingCommand("DISCONNECT",command_queue)
+                message = "disconnect"
+                data = message.encode()
                 await client.write_gatt_char(CHAR_UUID, data, response=True)
-                docking()
+                
+                status_queue.put("DISCONNECTION_START")
                 time.sleep(1)
-                break
-            time.sleep(7)
-            status_queue.put("DOCKING_COMPLETE")
-            charging()
-            awaitingCommand("DISCONNECT",command_queue)
-            message = "disconnect"
-            data = message.encode()
-            await client.write_gatt_char(CHAR_UUID, data, response=True)
-            
-            status_queue.put("DISCONNECTION_START")
-            time.sleep(1)
 
-            status_queue.put("ARM_RETRACTING")
-            # Give command to approach
-            disconnect()
-            docking()
-            time.sleep(4)
-            standby()
-            status_queue.put("DISCONNECT_COMPLETE")
-            awaitingCommand("FINISH",command_queue)
+                status_queue.put("ARM_RETRACTING")
+                # Give command to approach
+                disconnect()
+                docking()
+                time.sleep(4)
+                standby()
+                status_queue.put("DISCONNECT_COMPLETE")
+                awaitingCommand("FINISH",command_queue)
                
 
     except Exception:
