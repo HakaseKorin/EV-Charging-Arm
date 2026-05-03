@@ -75,7 +75,7 @@ async def scan_and_connect():
 
 async def main():
     folder_path = "../../runs/detect"
-    camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
+    camera = Camera_Guide(r"daykit_socket_model.pt", folder_path)
 
     await scan_and_connect()
 
@@ -112,14 +112,12 @@ async def main():
                     break
                 if(horz_result == -1):
                     print("Please adjust your vehicle right")
-                    camera.take_photo()
-                    camera.locate_socket()
                     input("Press Enter to try again..")
                 if(horz_result == 1):
                     print("Please adjust your vehicle left")
-                    camera.take_photo()
-                    camera.locate_socket()
                     input("Press Enter to try again..")
+                camera.take_photo()
+                camera.locate_socket()
             while True:
                 
                 # Tells arm that vehicle is aligned within bounds
