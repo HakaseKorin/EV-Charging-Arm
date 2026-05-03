@@ -1,6 +1,8 @@
 from bleak import BleakClient, BleakScanner
 from camera_guide import Camera_Guide
+from gui import ControllerGui
 import RPi.GPIO as GPIO
+import threading
 import asyncio
 import queue
 import time
@@ -8,6 +10,11 @@ import time
 SERVICE_UUID = "12345678-1234-5678-1234-56789abcdef0"
 CHAR_UUID     = "12345678-1234-5678-1234-56789abcdef1"
 DEVICE_NAME="ESP32_Server"
+
+command_queue = queue.Queue()
+status_queue = queue.Queue()
+
+gui = ControllerGui(command_queue,status_queue)
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
@@ -167,14 +174,13 @@ async def main():
     except Exception:
         print("Exception while connecting/connected", Exception)
 
-# TODO Implement gui that works with threads
 async def remote_worker(command_queue, status_queue):
     # should mirror main() but uses queue to coordinate everything.
-    status_queue.put("Initializing system..")
+    status_queue.put("SYSTEM_INITIALIZING")
     folder_path = "../../runs/detect"
     camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
 
-    status_queue.put("Async system starting..")
+    status_queue.put("CONNECTING_TO_DEVICE")
     await scan_and_connect()
 
     disconnect_event = asyncio.Event()
@@ -192,14 +198,17 @@ async def remote_worker(command_queue, status_queue):
             while True:
                 
                 # wait for command CAPTURE from gui
+                status_queue.put("SYSTEM_READY")
                 awaitingCommand("CAPTURE", command_queue)
                 
                 standby()
                 camera.take_photo()
-                                # Locate Socket
+                
+                # Locate Socket
+                status_queue.put("FINDING_TARGET")
                 if camera.locate_socket():
                     break
-                print("No viable target located, please try again..")
+                status_queue.put("NO_TARGET_FOUND")
                 time.sleep(5)
             
             camera.startup()
@@ -208,21 +217,22 @@ async def remote_worker(command_queue, status_queue):
                 # Horizontal alignment
                 horz_result = camera.check_horz()
                 if(horz_result == 0):
-                    print("Please do not move vehicle while arm is in motion..")
+                    status_queue.put("CAUTION_STAND_CLEAR_OF_ARM")
                     time.sleep(1)
 
                     #camera.show_image()
                     break
                 if(horz_result == -1):
-                    print("Please adjust your vehicle right")
+                    status_queue.put("NOT_ALIGNED")
+                    status_queue.put("ADJUST_VEHICLE_FORWARD")
                 if(horz_result == 1):
-                    print("Please adjust your vehicle left")
+                    status_queue.put("NOT_ALIGNED")
+                    status_queue.put("ADJUST_VEHICLE_BACKWARD")
 
                 camera.take_photo()
                 camera.locate_socket()
-                # TODO include an option to quit
-                input("Press Enter to try again..")
-                #awaitingCommand("RETRY", command_queue)
+
+                awaitingCommand("RETRY", command_queue)
             while True:
                 
                 # Tells arm that vehicle is aligned within bounds
@@ -235,39 +245,57 @@ async def remote_worker(command_queue, status_queue):
                 vert_result = camera.check_vert()
                 if(vert_result == 0):
                     print("Arm within tolerances, beginning approach..")
+                    status_queue.put("STARTING_APPROACH")
                     docking()
                     time.sleep(1)
                     break
                 if(vert_result < 0):
                     # adjust up
-                    print("Adjusting arm upwards..")
+                    status_queue.put("STARTING_APPROACH")
+                    status_queue.put("ADJUSTING UPWARDS")
                 if(vert_result > 0):
                     # adjust down
-                    print("Adjusting arm downwards..")
+                    status_queue.put("STARTING_APPROACH")
+                    status_queue.put("ADJUSTING BACKWARDS")
                 data = str(vert_result).encode()
                 await client.write_gatt_char(CHAR_UUID, data, response=True)
                 docking()
                 time.sleep(1)
                 break
             time.sleep(7)
-            print("Device is now connected..")
+            status_queue.put("DOCKING_COMPLETE")
             charging()
-            #awaitingCommand("DISCONNECT",command_queue)
-            input("Press Enter to Disconnect..")
+            awaitingCommand("DISCONNECT",command_queue)
             message = "disconnect"
             data = message.encode()
             await client.write_gatt_char(CHAR_UUID, data, response=True)
+            
+            status_queue.put("DISCONNECTION_START")
+            time.sleep(1)
+
+            status_queue.put("ARM_RETRACTING")
             # Give command to approach
             disconnect()
             docking()
             time.sleep(4)
             standby()
-            #awaitingCommand("FINISH",command_queue)
-            input("Press Enter to End Simulation")
+            status_queue.put("DISCONNECT_COMPLETE")
+            awaitingCommand("FINISH",command_queue)
                
 
     except Exception:
         print("Exception while connecting/connected", Exception)
 
+def run_async(command_queue,status_queue):
+    asyncio.run(remote_worker(command_queue,status_queue))
 
-asyncio.run(main())
+arm_thread = threading.Thread(
+    target=run_async,
+    args=(command_queue,status_queue),
+    daemon=True
+)
+
+arm_thread.start()
+gui.run()
+
+#asyncio.run(main())
