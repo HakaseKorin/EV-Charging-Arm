@@ -47,6 +47,11 @@ def charging():
 
     charging_in_progress()
 
+def awaitingCommand(command, command_queue):
+    while True:
+        if command_queue.get() == command:
+            break
+
 async def scan_and_connect():
     global device
     
@@ -188,14 +193,12 @@ async def remote_worker(command_queue, status_queue):
         ) as client:
             while True:
                 
-                #input("System Ready, Press Enter to continue..")
-                while True:
-                    if cmd == "CAPTURE":
-                        break
+                # wait for command CAPTURE from gui
+                awaitingCommand("CAPTURE", command_queue)
                 
                 standby()
                 camera.take_photo()
-                # Locate Socket
+                                # Locate Socket
                 if camera.locate_socket():
                     break
                 print("No viable target located, please try again..")
@@ -214,21 +217,22 @@ async def remote_worker(command_queue, status_queue):
                     break
                 if(horz_result == -1):
                     print("Please adjust your vehicle right")
-                    camera.take_photo()
-                    camera.locate_socket()
-                    #input("Press Enter to try again..")
-                    while True:
-                        if cmd == "RETRY":
-                            break
                 if(horz_result == 1):
                     print("Please adjust your vehicle left")
-                    camera.take_photo()
-                    camera.locate_socket()
-                    #input("Press Enter to try again..")
-                    while True:
-                        if cmd == "RETRY":
-                            break
+
+                camera.take_photo()
+                camera.locate_socket()
+                # TODO include an option to quit
+                input("Press Enter to try again..")
+                #awaitingCommand("RETRY", command_queue)
             while True:
+                
+                # Tells arm that vehicle is aligned within bounds
+                message = "aligned"
+                data = message.encode()
+                await client.write_gatt_char(CHAR_UUID, data, response=True)
+                time.sleep(5)
+
                 # Vertical alignment
                 vert_result = camera.check_vert()
                 if(vert_result == 0):
@@ -238,23 +242,19 @@ async def remote_worker(command_queue, status_queue):
                     break
                 if(vert_result < 0):
                     # adjust up
-                    data = str(vert_result).encode()
-                    await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm upwards..")
-                    docking()
-                    time.sleep(1)
-                    break
                 if(vert_result > 0):
                     # adjust down
-                    data = str(vert_result).encode()
-                    await client.write_gatt_char(CHAR_UUID, data, response=True)
                     print("Adjusting arm downwards..")
-                    docking()
-                    time.sleep(1)
-                    break
+                data = str(vert_result).encode()
+                await client.write_gatt_char(CHAR_UUID, data, response=True)
+                docking()
+                time.sleep(1)
+                break
             time.sleep(7)
             print("Device is now connected..")
             charging()
+            #awaitingCommand("DISCONNECT",command_queue)
             input("Press Enter to Disconnect..")
             message = "disconnect"
             data = message.encode()
@@ -264,6 +264,7 @@ async def remote_worker(command_queue, status_queue):
             docking()
             time.sleep(4)
             standby()
+            #awaitingCommand("FINISH",command_queue)
             input("Press Enter to End Simulation")
                
 
