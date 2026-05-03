@@ -90,7 +90,7 @@ class ControllerGui:
                 self.__button.config(
                     state="disabled"
                 )
-            if msg == "":
+            if msg == "DISCONNECT_COMPLETE":
                 self.__button.config(
                     state="active",
                     text="Restart",
