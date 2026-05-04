@@ -291,7 +291,7 @@ async def remote_worker(command_queue, status_queue, state_queue):
 def run_async(command_queue,status_queue,state_queue):
     asyncio.run(remote_worker(command_queue,status_queue, state_queue))
 
-def state_worker(state_queue):
+def state_worker(state_queue:queue):
     while True:
         while not state_queue.empty():
             msg = state_queue.get()
