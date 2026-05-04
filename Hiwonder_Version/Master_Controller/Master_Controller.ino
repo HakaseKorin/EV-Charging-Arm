@@ -271,13 +271,13 @@ void loop() {
     delay(2000);
     
     arm.coordinate_set(15,0,10+offset,0,-90,90,1000);
-    delay(2000);
+    delay(1000);
 
     arm.coordinate_set(20,0,10+offset,0,-90,90,1000);
-    delay(2000);
+    delay(1000);
 
     arm.coordinate_set(25,0,10+offset,0,-90,90,1000);
-    delay(2000);
+    delay(1000);
 
     arm.coordinate_set(30,0,10+offset,0,-90,90,1000);
     delay(2000);
@@ -294,20 +294,20 @@ void loop() {
     }
 
     // performs disconnect sequence after receving command
-    arm.coordinate_set(15,0,10+offset,0,-90,90,1000);
-    delay(2000);
-
-    arm.coordinate_set(20,0,10+offset,0,-90,90,1000);
-    delay(2000);
-
-    arm.coordinate_set(25,0,10+offset,0,-90,90,1000);
-    delay(2000);
-
     arm.coordinate_set(30,0,10+offset,0,-90,90,1000);
     delay(2000);
-
-    arm.coordinate_set(10,0,10,0,-90,90,1000);
+    
+    arm.coordinate_set(25,0,10+offset,0,-90,90,1000);
     delay(2000);
+    
+    arm.coordinate_set(20,0,10+offset,0,-90,90,1000);
+    delay(1000);
+    
+    arm.coordinate_set(15,0,10+offset,0,-90,90,1000);
+    delay(1000);
+
+    arm.coordinate_set(10,0,10+offset,0,-90,90,1000);
+    delay(1000);
 
     Serial.println("disconnect complete..");
     
