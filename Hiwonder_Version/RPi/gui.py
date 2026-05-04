@@ -134,7 +134,7 @@ class ControllerGui:
             if msg == "SHOW_IMAGE":
                 self.update_image("updated.jpg")
 
-        self.__root.after(100,self.update_gui, lambda: self.resize)
+        self.__root.after(100,self.update_gui)
             
     def run(self):
         self.__root.mainloop()
