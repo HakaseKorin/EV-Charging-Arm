@@ -13,6 +13,7 @@ DEVICE_NAME="ESP32_Server"
 
 command_queue = queue.Queue()
 status_queue = queue.Queue()
+state_queue = queue.Queue()
 
 gui = ControllerGui(command_queue,status_queue)
 
@@ -24,7 +25,6 @@ GPIO.setup(23, GPIO.OUT)
 
 def charging_in_progress():
     print("Now charging..")
-    time.sleep(3)
     GPIO.output(23,GPIO.HIGH)
 
 def disconnect():
@@ -36,21 +36,18 @@ def standby():
     GPIO.output(17,GPIO.HIGH)
     GPIO.output(27,GPIO.LOW)
     GPIO.output(22,GPIO.LOW)
-    time.sleep(2)
 
 def docking():
     print("Docking")
     GPIO.output(17,GPIO.LOW)
     GPIO.output(27,GPIO.HIGH)
     GPIO.output(22,GPIO.LOW)
-    time.sleep(2)
 
 def charging():
     print("Charging")
     GPIO.output(17,GPIO.LOW)
     GPIO.output(27,GPIO.LOW)
     GPIO.output(22,GPIO.HIGH)
-    time.sleep(2)
 
     charging_in_progress()
 
@@ -174,7 +171,7 @@ async def main():
     except Exception:
         print("Exception while connecting/connected", Exception)
 
-async def remote_worker(command_queue, status_queue):
+async def remote_worker(command_queue, status_queue, state_queue):
     # should mirror main() but uses queue to coordinate everything.
     status_queue.put("SYSTEM_INITIALIZING")
     folder_path = "../../runs/detect"
@@ -203,6 +200,7 @@ async def remote_worker(command_queue, status_queue):
                     
                     # wait for command CAPTURE from gui
                     status_queue.put("SYSTEM_READY")
+                    state_queue.put("STANDBY")
                     awaitingCommand("CAPTURE", command_queue)
                     
                     standby()
@@ -224,17 +222,18 @@ async def remote_worker(command_queue, status_queue):
                         status_queue.put("CAUTION_STAND_CLEAR_OF_ARM")
                         time.sleep(1)
 
-                        #camera.show_image()
+                        status_queue.put("SHOW_IMAGE")
                         break
                     if(horz_result == -1):
                         status_queue.put("NOT_ALIGNED")
-                        status_queue.put("ADJUST_VEHICLE_FORWARDS")
+                        status_queue.put("ADJUST_VEHICLE_FORWARD")
                     if(horz_result == 1):
                         status_queue.put("NOT_ALIGNED")
-                        status_queue.put("ADJUST_VEHICLE_BACKWARDS")
+                        status_queue.put("ADJUST_VEHICLE_BACKWARD")
 
                     camera.take_photo()
                     camera.locate_socket()
+                    status_queue.put("SHOW_IMAGE")
 
                     awaitingCommand("RETRY", command_queue)
                 while True:
@@ -250,7 +249,7 @@ async def remote_worker(command_queue, status_queue):
                     if(vert_result == 0):
                         print("Arm within tolerances, beginning approach..")
                         status_queue.put("STARTING_APPROACH")
-                        docking()
+                        state_queue.put("DOCKING")
                         time.sleep(1)
                         break
                     if(vert_result > 0):
@@ -263,12 +262,11 @@ async def remote_worker(command_queue, status_queue):
                         status_queue.put("ADJUSTING_DOWNWARDS")
                     data = str(vert_result).encode()
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
-                    docking()
-                    time.sleep(1)
+                    state_queue.put("DOCKING")
                     break
                 time.sleep(7)
                 status_queue.put("DOCKING_COMPLETE")
-                charging()
+                status_queue.put("CHARGING")
                 awaitingCommand("DISCONNECT",command_queue)
                 message = "disconnect"
                 data = message.encode()
@@ -279,10 +277,10 @@ async def remote_worker(command_queue, status_queue):
 
                 status_queue.put("ARM_RETRACTING")
                 # Give command to approach
-                disconnect()
-                docking()
+                state_queue.put("DISCONNECT")
+                state_queue.put("DOCKING")
                 time.sleep(4)
-                standby()
+                state_queue.put("STANDBY")
                 status_queue.put("DISCONNECT_COMPLETE")
                 awaitingCommand("FINISH",command_queue)
                
@@ -290,15 +288,41 @@ async def remote_worker(command_queue, status_queue):
     except Exception:
         print("Exception while connecting/connected", Exception)
 
-def run_async(command_queue,status_queue):
-    asyncio.run(remote_worker(command_queue,status_queue))
+def run_async(command_queue,status_queue,state_queue):
+    asyncio.run(remote_worker(command_queue,status_queue, state_queue))
 
-arm_thread = threading.Thread(
-    target=run_async,
-    args=(command_queue,status_queue),
+def state_worker(state_queue):
+    while True:
+        while not state_queue.empty():
+            msg = state_queue.get()
+            print(msg)
+
+            if msg == "STANDBY":
+                standby()
+
+            if msg == "DOCKING":
+                docking()
+
+            if msg == "CHARGING":
+                charging()
+
+            if msg == "DISCONNECT":
+                disconnect()
+        time.sleep(1)
+
+state_thread = threading.Thread(
+    target=state_worker,
+    args=(state_queue),
     daemon=True
 )
 
+arm_thread = threading.Thread(
+    target=run_async,
+    args=(command_queue,status_queue,state_queue),
+    daemon=True
+)
+
+state_thread.start()
 arm_thread.start()
 gui.run()
 

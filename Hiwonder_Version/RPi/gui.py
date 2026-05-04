@@ -1,5 +1,6 @@
 import tkinter as tk
 from time import sleep
+from PIL import Image, ImageTk
 
 class ControllerGui:
     def __init__(self, command_queue, status_queue):
@@ -9,6 +10,9 @@ class ControllerGui:
         self.__status_queue = status_queue
         self.__root.title("Robot Controllor GUI")
         self.__root.geometry("300x200")
+        self.__img =  Image.open("no_display.png")
+        self.__img.resize((200,200))
+        self.__tkimage = ImageTk.PhotoImage(self.__img)
 
         # Title Label
         self.__label = tk.Label(
@@ -17,6 +21,12 @@ class ControllerGui:
             font=("Arial", 14)
         )
         self.__label.pack(pady=20)
+
+        self.__image = tk.Label(
+            self.__root,
+            image = self.__tkimage
+        )
+        self.__image.pack()
 
         # Start Button
         self.__button = tk.Button(
@@ -38,6 +48,16 @@ class ControllerGui:
         self.__status.pack(pady=10)
 
         self.update_gui()
+    
+    def update_image(self, img_dir):
+        self.__img = Image.open(img_dir)
+        self.__img.resize((200,200))
+        self.__tkimage = ImageTk.PhotoImage(self.__img)
+
+        self.__image.config(
+            image = self.__tkimage
+        )
+        self.__image.pack()
     
     def start_program(self):
         self.__command_queue.put("CAPTURE")
@@ -69,6 +89,7 @@ class ControllerGui:
                 # enable start button set command to capture.
                 self.__button.config(
                     state="active",
+                    text="continue",
                     # capture command
                     command=self.start_program)
 
@@ -96,6 +117,9 @@ class ControllerGui:
                     text="Restart",
                     command=self.finish
                 )
+            if msg == "SHOW_IMAGE":
+                self.update_image("updated.jpg")
+
         self.__root.after(100,self.update_gui)
             
     def run(self):
