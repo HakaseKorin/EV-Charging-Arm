@@ -263,7 +263,7 @@ void loop() {
     }
 
     // perform alignment and connection
-    int offset = std::atoi(correction.c_str());
+    float offset = std::atof(correction.c_str());
     arm.coordinate_set(20,0,20,0,-90,90,1000);
     delay(2000);
     //claw.set_angle(1,180,100);
