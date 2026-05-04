@@ -26,6 +26,7 @@ class ControllerGui:
             self.__root,
             image = self.__tkimage
         )
+        self.__image.image = self.__tkimage
         self.__image.pack()
 
         # Start Button
@@ -49,6 +50,17 @@ class ControllerGui:
 
         self.update_gui()
     
+    def resize(self, event):
+        new_width = int(event.width * 0.5)
+        new_height = int(event.height * 0.5)
+
+        img_copy = self.__img.copy()
+        img_copy.thumbnail((new_width,new_height))
+
+        self.__tkimage = ImageTk.PhotoImage(img_copy)
+        self.__image.config(image=self.__tkimage)
+        self.__image.image = self.__tkimage
+
     def update_image(self, img_dir):
         self.__img = Image.open(img_dir)
         self.__img.resize((200,200))
@@ -120,7 +132,7 @@ class ControllerGui:
             if msg == "SHOW_IMAGE":
                 self.update_image("updated.jpg")
 
-        self.__root.after(100,self.update_gui)
+        self.__root.after(100,self.update_gui, lambda: self.resize)
             
     def run(self):
         self.__root.mainloop()
