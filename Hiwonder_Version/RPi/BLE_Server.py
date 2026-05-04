@@ -178,7 +178,7 @@ async def remote_worker(command_queue, status_queue):
     # should mirror main() but uses queue to coordinate everything.
     status_queue.put("SYSTEM_INITIALIZING")
     folder_path = "../../runs/detect"
-    camera = Camera_Guide(r"ev_socket_model.pt", folder_path)
+    camera = Camera_Guide(r"daykit_socket_model.pt", folder_path)
 
     restart = True
 
