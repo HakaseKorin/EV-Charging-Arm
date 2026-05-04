@@ -294,8 +294,8 @@ void loop() {
     }
 
     // performs disconnect sequence after receving command
-    arm.coordinate_set(30,0,10,0,-90,90,1000);
-    delay(1000);
+    arm.coordinate_set(30,0,10+offset,0,-90,90,1000);
+    delay(3000);
     
     arm.coordinate_set(25,0,10,0,-90,90,1000);
     delay(1000);
