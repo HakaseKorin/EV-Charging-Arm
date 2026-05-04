@@ -11,7 +11,7 @@ class ControllerGui:
         self.__root.title("Robot Controllor GUI")
         self.__root.geometry("300x200")
         self.__img =  Image.open("no_display.png")
-        self.__img.resize((100,100))
+        self.__img.resize((50,50))
         self.__tkimage = ImageTk.PhotoImage(self.__img)
 
         # Title Label
