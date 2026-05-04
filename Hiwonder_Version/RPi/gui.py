@@ -22,12 +22,12 @@ class ControllerGui:
         )
         self.__label.pack(pady=20)
 
-        self.__image = tk.Label(
-            self.__root,
-            image = self.__tkimage
-        )
-        self.__image.image = self.__tkimage
-        self.__image.pack()
+        #self.__image = tk.Label(
+        #    self.__root,
+        #    image = self.__tkimage
+        #)
+        #self.__image.image = self.__tkimage
+        #self.__image.pack()
 
         # Start Button
         self.__button = tk.Button(
@@ -51,6 +51,7 @@ class ControllerGui:
         self.update_gui()
     
     def resize(self, event):
+        return
         new_width = int(event.width * 0.5)
         new_height = int(event.height * 0.5)
 
@@ -62,6 +63,7 @@ class ControllerGui:
         self.__image.image = self.__tkimage
 
     def update_image(self, img_dir):
+        return
         self.__img = Image.open(img_dir)
         self.__img.resize((200,200))
         self.__tkimage = ImageTk.PhotoImage(self.__img)
