@@ -220,7 +220,7 @@ class SoCTracker:
     # Time-to-full / time-to-empty estimates
     # ------------------------------------------------------------------
 
-    def _smoothed_current(self):
+    def smoothed_current(self):
         """Average current over the recent sample window (mA)."""
         if not self._current_window:
             return 0.0
@@ -231,7 +231,7 @@ class SoCTracker:
         Estimated minutes until battery is empty at current discharge rate.
         Returns None if not discharging or current is negligible.
         """
-        avg_ma = self._smoothed_current()
+        avg_ma = self.smoothed_current()
         if avg_ma <= 5.0:
             return None
         return (self.charge_mah / avg_ma) * 60.0  # minutes
@@ -241,7 +241,7 @@ class SoCTracker:
         Estimated minutes until battery is full at current charge rate.
         Returns None if not charging or current is negligible.
         """
-        avg_ma = self._smoothed_current()
+        avg_ma = self.smoothed_current()
         if avg_ma >= -5.0:
             return None
         charge_rate_ma = abs(avg_ma) * COULOMBIC_EFFICIENCY
