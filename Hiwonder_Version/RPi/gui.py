@@ -104,7 +104,7 @@ class ControllerGui:
         observation = None
         if not self.__status_queue.empty():
             msg = self.__status_queue.get()
-            self.__status.config(text=msg)
+            
         if not self.__observer_queue.empty():
             observation = self.__observer_queue.get()
         print(msg)
@@ -148,6 +148,8 @@ class ControllerGui:
         if observation:
             self.__observer.config(text=observation)
             observation = None
+        if msg:
+            self.__status.config(text=msg)
 
         self.__root.after(100,self.update_gui)
             

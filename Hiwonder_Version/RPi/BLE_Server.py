@@ -327,6 +327,11 @@ def state_worker(state_queue, observer_queue, status_queue):
                 currently_charging = True
         
         if currently_charging:
+            voltage, current_ma, power_mw = soc_tracker.update()
+            is_charging = current_ma < -5.0
+            is_idle     = abs(current_ma) <= 5.0
+            state       = "CHARGING" if is_charging else ("IDLE" if is_idle else "DISCHARGING")
+
             ttf = soc_tracker.time_to_full
             observer_queue.put(f"SoC: {soc_tracker.soc_pct}%, ETA: {soc_tracker.fmt_minutes(ttf)}")
             charging(soc_tracker, current_ma, status_queue)
