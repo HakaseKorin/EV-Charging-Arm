@@ -113,7 +113,7 @@ class ControllerGui:
             # enable start button set command to capture.
             self.__button.config(
                 state="active",
-                text="continue",
+                text="Continue",
                 # capture command
                 command=self.start_program)
 
