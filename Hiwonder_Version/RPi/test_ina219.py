@@ -17,7 +17,7 @@ MIN_BATTERY_VOLTAGE = 9.0     # fault threshold
 # relay setup
 RELAY_PIN = 17
 # Change this if your relay is active LOW
-RELAY_ACTIVE_HIGH = True
+RELAY_ACTIVE_HIGH = False
 
 relay = OutputDevice(
     RELAY_PIN,
