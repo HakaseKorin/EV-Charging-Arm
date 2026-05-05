@@ -308,32 +308,33 @@ def state_worker(state_queue, observation_queue, status_queue):
     soc_tracker = SoCTracker(battery_sensor)
 
     while True:
-        msg = state_queue.get()
-        print(msg)
+        while not state_queue.empty():
+            msg = state_queue.get()
+            print(msg)
 
-        if msg == "STANDBY":
-            standby()
+            if msg == "STANDBY":
+                standby()
 
-        if msg == "DOCKING":
-            docking()
+            if msg == "DOCKING":
+                docking()
 
-        if msg == "CHARGING":
-            relay_on()
+            if msg == "CHARGING":
+                relay_on()
 
-            voltage, current_ma, power_mw = soc_tracker.update()
-            is_charging = current_ma < -5.0
-            is_idle     = abs(current_ma) <= 5.0
-            state       = "CHARGING" if is_charging else ("IDLE" if is_idle else "DISCHARGING")
-            # if charging
-            if state == "CHARGING":
-                ttf = soc_tracker.time_to_full
-                observer_queue.put(f"SoC: {soc_tracker.soc_pct}%, ETA: {soc_tracker.fmt_minutes(ttf)}")
-                charging(soc_tracker, current_ma, status_queue)
+                voltage, current_ma, power_mw = soc_tracker.update()
+                is_charging = current_ma < -5.0
+                is_idle     = abs(current_ma) <= 5.0
+                state       = "CHARGING" if is_charging else ("IDLE" if is_idle else "DISCHARGING")
+                # if charging
+                if state == "CHARGING":
+                    ttf = soc_tracker.time_to_full
+                    observer_queue.put(f"SoC: {soc_tracker.soc_pct}%, ETA: {soc_tracker.fmt_minutes(ttf)}")
+                    charging(soc_tracker, current_ma, status_queue)
 
-        if msg == "DISCONNECT":
-            relay_off()
-            disconnect()
-        time.sleep(1)
+            if msg == "DISCONNECT":
+                relay_off()
+                disconnect()
+            time.sleep(1)
 
 state_thread = threading.Thread(
     target=state_worker,
