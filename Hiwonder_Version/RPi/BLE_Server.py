@@ -314,7 +314,7 @@ def state_worker(state_queue, observation_queue):
 
 state_thread = threading.Thread(
     target=state_worker,
-    args=(state_queue),
+    args=(state_queue, observer_queue),
     daemon=True
 )
 
