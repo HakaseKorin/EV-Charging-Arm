@@ -85,7 +85,7 @@ class BatterySensor:
     def __init__(self):
         if HARDWARE_AVAILABLE:
             i2c = busio.I2C(board.SCL, board.SDA)
-            self.sensor = INA219(i2c, reset=False)
+            self.sensor = INA219(i2c)
             self.sensor.bus_voltage_range = 0  # 16V range
             self.sensor.gain = INA219.GAIN_8_320MV
             self.sensor.bus_adc_resolution = ADCResolution.ADCRES_12BIT_32S
