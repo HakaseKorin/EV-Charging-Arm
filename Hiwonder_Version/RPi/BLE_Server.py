@@ -12,12 +12,14 @@ SERVICE_UUID = "12345678-1234-5678-1234-56789abcdef0"
 CHAR_UUID     = "12345678-1234-5678-1234-56789abcdef1"
 DEVICE_NAME="ESP32_Server"
 
-command_queue = queue.Queue()
-status_queue = queue.Queue()
-state_queue = queue.Queue()
-observer_queue = queue.Queue()
+#command_queue = queue.Queue()
+#status_queue = queue.Queue()
+#state_queue = queue.Queue()
+#observer_queue = queue.Queue()
+main_queue = queue.Queue()
 
-gui = ControllerGui(command_queue,status_queue)
+
+gui = ControllerGui(main_queue)
 
 RELAY_PIN       = 17
 STANDBY_PIN     = 25
@@ -31,12 +33,12 @@ GPIO.setup(DOCKING_PIN, GPIO.OUT)
 GPIO.setup(CHARGING_PIN, GPIO.OUT)
 GPIO.setup(CONNECTED_PIN, GPIO.OUT)
 
-def charging_in_progress(tracker, current, status_queue):
+def charging_in_progress(tracker, current, main_queue):
     print("Now charging..")
     GPIO.output(CONNECTED_PIN,GPIO.HIGH)
 
     if tracker.soc_pct >= 99.9 and current < 0:
-        status_queue.put("DISCONNECT")
+        main_queue.put(("command","DISCONNECT"))
 def disconnect():
     print("Stopping charging squence..")
     GPIO.output(CONNECTED_PIN,GPIO.LOW)
@@ -53,21 +55,25 @@ def docking():
     GPIO.output(DOCKING_PIN,GPIO.HIGH)
     GPIO.output(CHARGING_PIN,GPIO.LOW)
 
-def charging(tracker, current, status_queue):
+def charging(tracker, current, main_queue):
     print("Charging")
     GPIO.output(STANDBY_PIN,GPIO.LOW)
     GPIO.output(DOCKING_PIN,GPIO.LOW)
     GPIO.output(CHARGING_PIN,GPIO.HIGH)
 
-    charging_in_progress(tracker, current, status_queue)
+    charging_in_progress(tracker, current, main_queue)
 
-def awaitingCommand(command, command_queue, state_queue):
+def awaitingCommand(command,main_queue):
     while True:
         #if command_queue.get() == "DISCONNECT":
         #    state_queue.put("DISCONNECT")
         #    break
-        if command_queue.get() == command:
-            break
+        msg,data = main_queue.get()
+        if msg == "command":
+            if data == "DISCONNECT"
+                main_queue.put()
+            if data == "COMMAND":
+                break
 
 async def scan_and_connect():
     global device

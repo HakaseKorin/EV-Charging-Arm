@@ -3,11 +3,12 @@ from time import sleep
 from PIL import Image, ImageTk
 
 class ControllerGui:
-    def __init__(self, command_queue, status_queue):
+    def __init__(self, main_queue):
         # Creates main window
         self.__root = tk.Tk()
-        self.__command_queue = command_queue
-        self.__status_queue = status_queue
+        self.__main_queue = main_queue
+        #self.__command_queue = command_queue
+        #self.__status_queue = status_queue
         self.__root.title("Robot Controllor GUI")
         self.__root.geometry("300x200")
         self.__img =  Image.open("no_display.png")
@@ -74,65 +75,75 @@ class ControllerGui:
         self.__image.pack()
     
     def start_program(self):
-        self.__command_queue.put("CAPTURE")
-        self.__status_queue.put(". . .")
+        #self.__command_queue.put("CAPTURE")
+        self.__main_queue.put(("command","CAPTURE"))
+        #self.__status_queue.put(". . .")
+        self.__main_queue.put(("status",". . ."))
 
     def retry(self):
-        self.__command_queue.put("RETRY")
-        self.__status_queue.put(". . .")
+        #self.__command_queue.put("RETRY")
+        self.__main_queue.put(("command","RETRY"))
+        #self.__status_queue.put(". . .")
+        self.__main_queue.put(("status",". . ."))
 
     def quit(self):
-        self.__command_queue.put("QUIT")
+        #self.__command_queue.put("QUIT")
+        self.__main_queue.put(("command","QUIT"))
 
     def disconnect(self):
-        self.__command_queue.put("DISCONNECT")
-        self.__status_queue.put(". . .")
+        #self.__command_queue.put("DISCONNECT")
+        self.__main_queue.put(("command","DISCONNECT"))
+        #self.__status_queue.put(". . .")
+        self.__main_queue.put(("status",". . ."))
 
     def finish(self):
-        self.__command_queue.put("FINISH")
+        #self.__command_queue.put("FINISH")
+        self.__main_queue.put(("command","FINISH"))
 
     def update_gui(self):
-        while not self.__status_queue.empty():
+        while not self.__main_queue.empty():
         #while True:
-            msg = self.__status_queue.get()
-            self.__status.config(text=msg)
-            print(msg)
-            
-            # initialization complete step
-            if msg == "SYSTEM_READY":
-                # enable start button set command to capture.
-                self.__button.config(
-                    state="active",
-                    text="continue",
-                    # capture command
-                    command=self.start_program)
+            msg,data = self.__main_queue.get()
+            if msg == "status":
+                self.__status.config(text=data)
+            elif msg == "command":
+                print(data)
+                
+                # initialization complete step
+                if data == "SYSTEM_READY":
+                    # enable start button set command to capture.
+                    self.__button.config(
+                        state="active",
+                        text="continue",
+                        # capture command
+                        command=self.start_program)
 
-            if msg == "NOT_FOUND" or msg == "NOT_ALIGNED":
-                self.__button.config(
-                    text="Retry",
-                    state="active",
-                    command=self.retry
-                )
+                if data == "NOT_FOUND" or data == "NOT_ALIGNED":
+                    self.__button.config(
+                        text="Retry",
+                        state="active",
+                        command=self.retry
+                    )
 
-            if msg == "DOCKING_COMPLETE":
-                self.__button.config(
-                    # disconnect command
-                    text="Disconnect",
-                    state="active",
-                    command=self.disconnect
-                )
-            if msg == ". . .":
-                self.__button.config(
-                    state="disabled"
-                )
-            if msg == "DISCONNECT_COMPLETE":
-                self.__button.config(
-                    state="active",
-                    text="Restart",
-                    command=self.finish
-                )
-            if msg == "SHOW_IMAGE":
-                self.update_image("updated.jpg")
+                if data == "DOCKING_COMPLETE":
+                    self.__button.config(
+                        # disconnect command
+                        text="Disconnect",
+                        state="active",
+                        command=self.disconnect
+                    )
+                if data == ". . .":
+                    self.__button.config(
+                        state="disabled"
+                    )
+                if data == "DISCONNECT_COMPLETE":
+                    self.__button.config(
+                        state="active",
+                        text="Restart",
+                        command=self.finish
+                    )
+                if data == "SHOW_IMAGE":
+                    self.update_image("updated.jpg")
 
         self.__root.after(100,self.update_gui)
             
