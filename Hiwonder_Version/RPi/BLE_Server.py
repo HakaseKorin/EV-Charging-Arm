@@ -35,8 +35,6 @@ def charging_in_progress(tracker, current, status_queue):
     print("Now charging..")
     GPIO.output(CONNECTED_PIN,GPIO.HIGH)
 
-    if tracker.soc_pct >= 99.9 and current < 0:
-        status_queue.put("DISCONNECT")
 def disconnect():
     print("Stopping charging squence..")
     GPIO.output(CONNECTED_PIN,GPIO.LOW)
@@ -274,8 +272,9 @@ async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
                     break
                 time.sleep(7)
                 status_queue.put("DOCKING_COMPLETE")
-                status_queue.put("CHARGING")
+                state_queue.put("CHARGING")
                 awaitingCommand("DISCONNECT",command_queue)
+                state_queue.put("DISCONNECT")
                 message = "disconnect"
                 data = message.encode()
                 await client.write_gatt_char(CHAR_UUID, data, response=True)
