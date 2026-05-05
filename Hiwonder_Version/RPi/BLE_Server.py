@@ -6,6 +6,7 @@ import threading
 import asyncio
 import queue
 import time
+from soc import BatterySensor, SoCTracker
 
 SERVICE_UUID = "12345678-1234-5678-1234-56789abcdef0"
 CHAR_UUID     = "12345678-1234-5678-1234-56789abcdef1"
@@ -17,6 +18,9 @@ state_queue = queue.Queue()
 observer_queue = queue.Queue()
 
 gui = ControllerGui(command_queue,status_queue)
+
+battery_sensor = BatterySensor()
+soc_tracker = SoCTracker(battery_sensor)
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
