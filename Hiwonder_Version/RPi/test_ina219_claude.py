@@ -103,7 +103,7 @@ class BatterySensor:
         """
         if HARDWARE_AVAILABLE:
             voltage    = self.sensor.bus_voltage
-            current_ma = self.sensor.current
+            current_ma = self.sensor.current * -1
             power_mw   = self.sensor.power
             return voltage, current_ma, power_mw
         else:
