@@ -107,7 +107,6 @@ class ControllerGui:
             
         if not self.__observer_queue.empty():
             observation = self.__observer_queue.get()
-        print(msg)
         
         # initialization complete step
         if msg == "SYSTEM_READY":
