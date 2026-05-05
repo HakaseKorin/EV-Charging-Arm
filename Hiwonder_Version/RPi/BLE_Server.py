@@ -24,6 +24,7 @@ STANDBY_PIN     = 25
 DOCKING_PIN     = 27
 CHARGING_PIN    = 22
 CONNECTED_PIN   = 23
+currently_charging = False
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(STANDBY_PIN, GPIO.OUT)
@@ -297,10 +298,9 @@ def run_async(command_queue,status_queue,state_queue,observer_queue):
     asyncio.run(remote_worker(command_queue,status_queue, state_queue,observer_queue))
 
 def state_worker(state_queue, observer_queue, status_queue):
+    global currently_charging
     state_queue.put("STATE_QUEUE_START")
     observer_queue.put("OBSERVATION_START")
-
-    currently_charging = False
 
     battery_sensor = BatterySensor()
     soc_tracker = SoCTracker(battery_sensor)
