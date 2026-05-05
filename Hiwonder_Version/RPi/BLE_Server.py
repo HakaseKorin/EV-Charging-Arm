@@ -323,8 +323,7 @@ def state_worker(state_queue, observer_queue, status_queue):
             is_idle     = abs(current_ma) <= 5.0
             state       = "CHARGING" if is_charging else ("IDLE" if is_idle else "DISCHARGING")
             # if charging
-            if state == "CHARGING":
-                currently_charging = True
+            currently_charging = True
         
         if currently_charging:
             voltage, current_ma, power_mw = soc_tracker.update()
