@@ -100,52 +100,54 @@ class ControllerGui:
         self.__command_queue.put("FINISH")
 
     def update_gui(self):
-        while not self.__status_queue.empty():
-        #while True:
+        msg = None
+        observation = None
+        if not self.__status_queue.empty():
             msg = self.__status_queue.get()
-            observation = self.__observer_queue.get()
             self.__status.config(text=msg)
-            print(msg)
-            
-            # initialization complete step
-            if msg == "SYSTEM_READY":
-                # enable start button set command to capture.
-                self.__button.config(
-                    state="active",
-                    text="continue",
-                    # capture command
-                    command=self.start_program)
+        if not self.__observer_queue.empty():
+            observation = self.__observer_queue.get()
+        print(msg)
+        
+        # initialization complete step
+        if msg == "SYSTEM_READY":
+            # enable start button set command to capture.
+            self.__button.config(
+                state="active",
+                text="continue",
+                # capture command
+                command=self.start_program)
 
-            if msg == "NOT_FOUND" or msg == "NOT_ALIGNED":
-                self.__button.config(
-                    text="Retry",
-                    state="active",
-                    command=self.retry
-                )
+        if msg == "NOT_FOUND" or msg == "NOT_ALIGNED":
+            self.__button.config(
+                text="Retry",
+                state="active",
+                command=self.retry
+            )
 
-            if msg == "DOCKING_COMPLETE":
-                self.__button.config(
-                    # disconnect command
-                    text="Disconnect",
-                    state="active",
-                    command=self.disconnect
-                )
-            if msg == ". . .":
-                self.__button.config(
-                    state="disabled"
-                )
-            if msg == "DISCONNECT_COMPLETE":
-                self.__button.config(
-                    state="active",
-                    text="Restart",
-                    command=self.finish
-                )
-            if msg == "SHOW_IMAGE":
-                self.update_image("updated.jpg")
+        if msg == "DOCKING_COMPLETE":
+            self.__button.config(
+                # disconnect command
+                text="Disconnect",
+                state="active",
+                command=self.disconnect
+            )
+        if msg == ". . .":
+            self.__button.config(
+                state="disabled"
+            )
+        if msg == "DISCONNECT_COMPLETE":
+            self.__button.config(
+                state="active",
+                text="Restart",
+                command=self.finish
+            )
+        if msg == "SHOW_IMAGE":
+            self.update_image("updated.jpg")
 
-            if observation:
-                self.__observer.config(text=observation)
-                observation = None
+        if observation:
+            self.__observer.config(text=observation)
+            observation = None
 
         self.__root.after(100,self.update_gui)
             
