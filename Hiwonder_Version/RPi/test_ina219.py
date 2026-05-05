@@ -11,9 +11,6 @@ BATTERY_CAPACITY_AH = 2.6
 MAX_VOLTAGE = 12.60
 MIN_VOLTAGE = 9.60
 
-MIN_CHARGE_CURRENT_A = 0.05  # below this, ETA unreliable
-
-# Relay logic (flip if needed)
 RELAY_ON = GPIO.HIGH
 RELAY_OFF = GPIO.LOW
 
@@ -21,7 +18,7 @@ RELAY_OFF = GPIO.LOW
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(RELAY_PIN, GPIO.OUT)
 
-# Set relay state ONCE (no toggling loop)
+# Set relay once
 GPIO.output(RELAY_PIN, RELAY_ON)
 
 # ---------------- INA219 SETUP ----------------
@@ -31,21 +28,10 @@ ina219 = INA219(i2c)
 # ---------------- VOLTAGE -> SOC ----------------
 def voltage_to_soc(voltage):
     curve = [
-        (12.60, 100),
-        (12.45, 95),
-        (12.30, 90),
-        (12.15, 85),
-        (12.00, 80),
-        (11.85, 70),
-        (11.70, 60),
-        (11.55, 50),
-        (11.40, 40),
-        (11.25, 30),
-        (11.10, 20),
-        (10.95, 15),
-        (10.80, 10),
-        (10.50, 5),
-        (9.60, 0),
+        (12.60, 100), (12.45, 95), (12.30, 90), (12.15, 85),
+        (12.00, 80), (11.85, 70), (11.70, 60), (11.55, 50),
+        (11.40, 40), (11.25, 30), (11.10, 20), (10.95, 15),
+        (10.80, 10), (10.50, 5), (9.60, 0),
     ]
 
     if voltage >= curve[0][0]:
@@ -56,7 +42,6 @@ def voltage_to_soc(voltage):
     for i in range(len(curve) - 1):
         v1, soc1 = curve[i]
         v2, soc2 = curve[i + 1]
-
         if v2 <= voltage <= v1:
             return soc2 + (soc1 - soc2) * (voltage - v2) / (v1 - v2)
 
@@ -64,7 +49,7 @@ def voltage_to_soc(voltage):
 
 # ---------------- ETA FORMAT ----------------
 def format_eta(hours):
-    if hours is None:
+    if hours is None or hours == float("inf"):
         return "N/A"
     h = int(hours)
     m = int((hours - h) * 60)
@@ -76,13 +61,11 @@ soc = 100.0
 
 try:
     while True:
-        # --- Read sensor ---
         voltage = ina219.bus_voltage
         current_mA = ina219.current
         current_A = current_mA / 1000.0
         power = ina219.power
 
-        # --- Time delta ---
         now = time.time()
         dt_hours = (now - last_time) / 3600.0
         last_time = now
@@ -90,25 +73,22 @@ try:
         # --- Coulomb counting ---
         soc -= (current_A * dt_hours / BATTERY_CAPACITY_AH) * 100
 
-        # --- Voltage correction when near idle ---
-        if abs(current_A) < MIN_CHARGE_CURRENT_A:
-            soc = voltage_to_soc(voltage)
+        # --- Voltage correction (always allowed now) ---
+        soc = voltage_to_soc(voltage)
 
         soc = max(0, min(100, soc))
 
         # ---------------- ETA CALCULATION ----------------
-        eta_hours = None
-
-        if abs(current_A) > MIN_CHARGE_CURRENT_A:
-            if current_A > 0:
-                # Discharging
-                eta_hours = (soc / 100.0) * BATTERY_CAPACITY_AH / current_A
-                mode = "Discharging"
-            else:
-                # Charging
-                eta_hours = ((100 - soc) / 100.0) * BATTERY_CAPACITY_AH / abs(current_A)
-                mode = "Charging"
+        if current_A > 0:
+            # Discharging
+            eta_hours = (soc / 100.0) * BATTERY_CAPACITY_AH / current_A if current_A != 0 else float("inf")
+            mode = "Discharging"
+        elif current_A < 0:
+            # Charging
+            eta_hours = ((100 - soc) / 100.0) * BATTERY_CAPACITY_AH / abs(current_A)
+            mode = "Charging"
         else:
+            eta_hours = float("inf")
             mode = "Idle"
 
         # --- Low voltage safety ---
