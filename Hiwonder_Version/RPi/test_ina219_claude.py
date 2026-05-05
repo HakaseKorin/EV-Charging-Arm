@@ -41,7 +41,7 @@ except ImportError:
 try:
     import board
     import busio
-    from adafruit_ina219 import INA219, ADCResolution, Mode
+    from adafruit_ina219 import INA219, ADCResolution, Mode, Gain
     HARDWARE_AVAILABLE = True
 except ImportError:
     HARDWARE_AVAILABLE = False
@@ -87,7 +87,7 @@ class BatterySensor:
             i2c = busio.I2C(board.SCL, board.SDA)
             self.sensor = INA219(i2c)
             self.sensor.bus_voltage_range = 0  # 16V range
-            self.sensor.gain = INA219.DIV_8_320MV
+            self.sensor.gain = Gain.DIV_8_320MV
             self.sensor.bus_adc_resolution = ADCResolution.ADCRES_12BIT_32S
             self.sensor.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S
             self.sensor.mode = Mode.SANDBURST
