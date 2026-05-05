@@ -340,7 +340,7 @@ state_thread = threading.Thread(
 
 arm_thread = threading.Thread(
     target=run_async,
-    args=(command_queue,status_queue,observer_queue),
+    args=(command_queue,status_queue,state_queue,observer_queue),
     daemon=True
 )
 
