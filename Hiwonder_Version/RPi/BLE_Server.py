@@ -271,7 +271,7 @@ async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
                     await client.write_gatt_char(CHAR_UUID, data, response=True)
                     state_queue.put("DOCKING")
                     break
-                time.sleep(7)
+                time.sleep(9)
                 status_queue.put("DOCKING_COMPLETE")
                 state_queue.put("CHARGING")
                 awaitingCommand("DISCONNECT",command_queue)
