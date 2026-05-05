@@ -63,9 +63,9 @@ def charging(tracker, current, status_queue):
 
 def awaitingCommand(command, command_queue, state_queue):
     while True:
-        if command_queue.get() == "DISCONNECT":
-            state_queue.put("DISCONNECT")
-            break
+        #if command_queue.get() == "DISCONNECT":
+        #    state_queue.put("DISCONNECT")
+        #    break
         if command_queue.get() == command:
             break
 
