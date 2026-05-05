@@ -14,6 +14,7 @@ DEVICE_NAME="ESP32_Server"
 command_queue = queue.Queue()
 status_queue = queue.Queue()
 state_queue = queue.Queue()
+observer_queue = queue.Queue()
 
 gui = ControllerGui(command_queue,status_queue)
 
@@ -291,7 +292,9 @@ async def remote_worker(command_queue, status_queue, state_queue):
 def run_async(command_queue,status_queue,state_queue):
     asyncio.run(remote_worker(command_queue,status_queue, state_queue))
 
-def state_worker(state_queue:queue):
+def state_worker(state_queue, observation_queue):
+    state_queue.put("STATE_QUEUE_START")
+    observation_queue.put("OBSERVATION_START")
     while True:
         while not state_queue.empty():
             msg = state_queue.get()
