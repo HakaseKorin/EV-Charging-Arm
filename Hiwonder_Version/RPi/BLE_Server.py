@@ -6,7 +6,7 @@ import threading
 import asyncio
 import queue
 import time
-from soc import BatterySensor, SoCTracker
+from soc import BatterySensor, SoCTracker, relay_on, relay_off
 
 SERVICE_UUID = "12345678-1234-5678-1234-56789abcdef0"
 CHAR_UUID     = "12345678-1234-5678-1234-56789abcdef1"
@@ -19,40 +19,43 @@ observer_queue = queue.Queue()
 
 gui = ControllerGui(command_queue,status_queue)
 
-battery_sensor = BatterySensor()
-soc_tracker = SoCTracker(battery_sensor)
+RELAY_PIN       = 17
+STANDBY_PIN     = 25
+DOCKING_PIN     = 27
+CHARGING_PIN    = 22
+CONNECTED_PIN   = 23
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.OUT)
-GPIO.setup(27, GPIO.OUT)
-GPIO.setup(22, GPIO.OUT)
-GPIO.setup(23, GPIO.OUT)
+GPIO.setup(STANDBY_PIN, GPIO.OUT)
+GPIO.setup(DOCKING_PIN, GPIO.OUT)
+GPIO.setup(CHARGING_PIN, GPIO.OUT)
+GPIO.setup(CONNECTED_PIN, GPIO.OUT)
 
 def charging_in_progress():
     print("Now charging..")
-    GPIO.output(23,GPIO.HIGH)
+    GPIO.output(CONNECTED_PIN,GPIO.HIGH)
 
 def disconnect():
     print("Stopping charging squence..")
-    GPIO.output(23,GPIO.LOW)
+    GPIO.output(CONNECTED_PIN,GPIO.LOW)
 
 def standby():
     print("Standby")
-    GPIO.output(17,GPIO.HIGH)
-    GPIO.output(27,GPIO.LOW)
-    GPIO.output(22,GPIO.LOW)
+    GPIO.output(STANDBY_PIN,GPIO.HIGH)
+    GPIO.output(DOCKING_PIN,GPIO.LOW)
+    GPIO.output(CHARGING_PIN,GPIO.LOW)
 
 def docking():
     print("Docking")
-    GPIO.output(17,GPIO.LOW)
-    GPIO.output(27,GPIO.HIGH)
-    GPIO.output(22,GPIO.LOW)
+    GPIO.output(STANDBY_PIN,GPIO.LOW)
+    GPIO.output(DOCKING_PIN,GPIO.HIGH)
+    GPIO.output(CHARGING_PIN,GPIO.LOW)
 
 def charging():
     print("Charging")
-    GPIO.output(17,GPIO.LOW)
-    GPIO.output(27,GPIO.LOW)
-    GPIO.output(22,GPIO.HIGH)
+    GPIO.output(STANDBY_PIN,GPIO.LOW)
+    GPIO.output(DOCKING_PIN,GPIO.LOW)
+    GPIO.output(CHARGING_PIN,GPIO.HIGH)
 
     charging_in_progress()
 
@@ -227,7 +230,7 @@ async def remote_worker(command_queue, status_queue, state_queue):
                         status_queue.put("CAUTION_STAND_CLEAR_OF_ARM")
                         time.sleep(1)
 
-                        status_queue.put("SHOW_IMAGE")
+                        #status_queue.put("SHOW_IMAGE")
                         break
                     if(horz_result == -1):
                         status_queue.put("NOT_ALIGNED")
@@ -238,7 +241,7 @@ async def remote_worker(command_queue, status_queue, state_queue):
 
                     camera.take_photo()
                     camera.locate_socket()
-                    status_queue.put("SHOW_IMAGE")
+                    #status_queue.put("SHOW_IMAGE")
 
                     awaitingCommand("RETRY", command_queue)
                 while True:
@@ -255,7 +258,6 @@ async def remote_worker(command_queue, status_queue, state_queue):
                         print("Arm within tolerances, beginning approach..")
                         status_queue.put("STARTING_APPROACH")
                         state_queue.put("DOCKING")
-                        time.sleep(1)
                         break
                     if(vert_result > 0):
                         # adjust up
@@ -299,6 +301,10 @@ def run_async(command_queue,status_queue,state_queue):
 def state_worker(state_queue, observation_queue):
     state_queue.put("STATE_QUEUE_START")
     observation_queue.put("OBSERVATION_START")
+
+    battery_sensor = BatterySensor()
+    soc_tracker = SoCTracker(battery_sensor)
+
     while True:
         msg = state_queue.get()
         print(msg)
@@ -310,6 +316,7 @@ def state_worker(state_queue, observation_queue):
             docking()
 
         if msg == "CHARGING":
+            relay_on()
             charging()
 
         if msg == "DISCONNECT":
