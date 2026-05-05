@@ -17,7 +17,7 @@ status_queue = queue.Queue()
 state_queue = queue.Queue()
 observer_queue = queue.Queue()
 
-gui = ControllerGui(command_queue,status_queue)
+gui = ControllerGui(command_queue,status_queue,observer_queue)
 
 RELAY_PIN       = 17
 STANDBY_PIN     = 25
