@@ -72,7 +72,16 @@ try:
         current_A = current_mA / 1000.0
         power = ina219.power
 
-        soc = voltage_to_soc(voltage)
+        now = time.time()
+        dt_hours = (now - last_time) / 3600.0
+        last_time = now
+
+        # --- Coulomb counting (primary SoC tracking) ---
+        soc -= (current_A * dt_hours / BATTERY_CAPACITY_AH) * 100
+
+        # --- Voltage correction when idle ---
+        if abs(current_mA) < 50:  # near rest
+            soc = voltage_to_soc(voltage)
 
         # Clamp
         soc = max(0, min(100, soc))
