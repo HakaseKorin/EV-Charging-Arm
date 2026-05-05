@@ -1,94 +1,39 @@
+import time
 import board
 import busio
-from gpiozero import OutputDevice
+import RPi.GPIO as GPIO
 from adafruit_ina219 import INA219
-import time
 
-# Initialize I2C
-i2c = busio.I2C(board.SCL, board.SDA)
-
-# -------------------------
-# Charging safety limits
-# -------------------------
-MAX_BATTERY_VOLTAGE = 12.60   # 3S Li-ion full charge
-MAX_CURRENT_A = 2.0           # adjust for your charger/battery
-MIN_BATTERY_VOLTAGE = 9.0     # fault threshold
-
-# relay setup
+# ---- GPIO SETUP ----
 RELAY_PIN = 17
-# Change this if your relay is active LOW
-RELAY_ACTIVE_HIGH = True
 
-relay = OutputDevice(
-    RELAY_PIN,
-    active_high=RELAY_ACTIVE_HIGH,
-    initial_value=False
-)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(RELAY_PIN, GPIO.OUT)
 
-# -------------------------
-# INA219 setup
-# -------------------------
+# ---- INA219 SETUP ----
 i2c = busio.I2C(board.SCL, board.SDA)
 ina219 = INA219(i2c)
-
-# Create INA219 object
-ina219 = INA219(i2c)
-
-def set_relay(on: bool):
-    if on:
-        relay.on()
-    else:
-        relay.off()
-
-def relay_state_text():
-    return "ON" if relay.value else "OFF"
 
 def read_sensor():
-    bus_voltage = ina219.bus_voltage      # volts
-    current = ina219.current / 1000.0     # mA to A
-    power = ina219.power / 1000.0         # mW to W
-    return bus_voltage, current, power
-
-def should_charge(voltage, current):
-    if voltage >= MAX_BATTERY_VOLTAGE:
-        return False
-
-    if voltage <= MIN_BATTERY_VOLTAGE:
-        return False
-
-    if abs(current) > MAX_CURRENT_A:
-        return False
-
-    return True
+    print(f"Voltage: {ina219.bus_voltage:.3f} V")
+    print(f"Current: {ina219.current:.3f} mA")
+    print(f"Power:   {ina219.power:.3f} mW")
+    print("-" * 30)
 
 try:
-    print("INA219 + Relay Charger Monitor Started")
-    print("Press CTRL+C to stop")
-
     while True:
-        voltage, current, power = read_sensor()
+        print("Relay ON")
+        GPIO.output(RELAY_PIN, GPIO.HIGH)  # may be LOW depending on module
+        time.sleep(2)
 
-        charge_allowed = should_charge(voltage, current)
-        set_relay(charge_allowed)
+        read_sensor()
 
-        print(
-            f"Voltage: {voltage:.2f} V | "
-            f"Current: {current:.3f} A | "
-            f"Power: {power:.2f} W | "
-            f"Relay: {relay_state_text()}"
-        )
-
-        time.sleep(0.5)
+        print("Relay OFF")
+        GPIO.output(RELAY_PIN, GPIO.LOW)
+        time.sleep(2)
 
 except KeyboardInterrupt:
-    print("\nStopping system...")
+    print("Exiting...")
 
 finally:
-    set_relay(False)
-    relay.close()
-    print("Relay OFF. Shutdown complete.")
-
-# Read values
-print("Bus Voltage: {:.3f} V".format(ina219.bus_voltage))
-print("Current: {:.3f} mA".format(ina219.current))
-print("Power: {:.3f} mW".format(ina219.power))
+    GPIO.cleanup()
