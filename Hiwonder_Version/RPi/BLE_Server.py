@@ -306,8 +306,9 @@ def state_worker(state_queue, observer_queue, status_queue):
     soc_tracker = SoCTracker(battery_sensor)
 
     while True:
-        msg = state_queue.get()
-        print(msg)
+        if not state_queue.empty():
+            msg = state_queue.get()
+            print(msg)
 
         if msg == "STANDBY":
             standby()
@@ -324,8 +325,6 @@ def state_worker(state_queue, observer_queue, status_queue):
             state       = "CHARGING" if is_charging else ("IDLE" if is_idle else "DISCHARGING")
             # if charging
             currently_charging = True
-        
-        
 
         if currently_charging:
             print(currently_charging)
