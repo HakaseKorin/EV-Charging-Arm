@@ -253,7 +253,7 @@ class SoCTracker:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _fmt_minutes(minutes):
+    def fmt_minutes(minutes):
         """Format minutes as 'Xh Ym' or 'Ym'."""
         if minutes is None:
             return "--"

@@ -31,10 +31,12 @@ GPIO.setup(DOCKING_PIN, GPIO.OUT)
 GPIO.setup(CHARGING_PIN, GPIO.OUT)
 GPIO.setup(CONNECTED_PIN, GPIO.OUT)
 
-def charging_in_progress():
+def charging_in_progress(tracker, current, status_queue):
     print("Now charging..")
     GPIO.output(CONNECTED_PIN,GPIO.HIGH)
 
+    if tracker.soc_pct >= 99.9 and current < 0:
+        status_queue.put("DISCONNECT")
 def disconnect():
     print("Stopping charging squence..")
     GPIO.output(CONNECTED_PIN,GPIO.LOW)
@@ -51,16 +53,19 @@ def docking():
     GPIO.output(DOCKING_PIN,GPIO.HIGH)
     GPIO.output(CHARGING_PIN,GPIO.LOW)
 
-def charging():
+def charging(tracker, current, status_queue):
     print("Charging")
     GPIO.output(STANDBY_PIN,GPIO.LOW)
     GPIO.output(DOCKING_PIN,GPIO.LOW)
     GPIO.output(CHARGING_PIN,GPIO.HIGH)
 
-    charging_in_progress()
+    charging_in_progress(tracker, current, status_queue)
 
-def awaitingCommand(command, command_queue):
+def awaitingCommand(command, command_queue, state_queue):
     while True:
+        if command_queue.get() == "DISCONNECT":
+            state_queue.put("DISCONNECT")
+            break
         if command_queue.get() == command:
             break
 
@@ -163,7 +168,6 @@ async def main():
                     break
             time.sleep(7)
             print("Device is now connected..")
-            charging()
             input("Press Enter to Disconnect..")
             message = "disconnect"
             data = message.encode()
@@ -179,7 +183,7 @@ async def main():
     except Exception:
         print("Exception while connecting/connected", Exception)
 
-async def remote_worker(command_queue, status_queue, state_queue):
+async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
     # should mirror main() but uses queue to coordinate everything.
     status_queue.put("SYSTEM_INITIALIZING")
     folder_path = "../../runs/detect"
@@ -209,7 +213,7 @@ async def remote_worker(command_queue, status_queue, state_queue):
                     # wait for command CAPTURE from gui
                     status_queue.put("SYSTEM_READY")
                     state_queue.put("STANDBY")
-                    awaitingCommand("CAPTURE", command_queue)
+                    awaitingCommand("CAPTURE", command_queue, state_queue)
                     
                     standby()
                     camera.take_photo()
@@ -243,7 +247,7 @@ async def remote_worker(command_queue, status_queue, state_queue):
                     camera.locate_socket()
                     #status_queue.put("SHOW_IMAGE")
 
-                    awaitingCommand("RETRY", command_queue)
+                    awaitingCommand("RETRY", command_queue, state_queue)
                 while True:
                     
                     # Tells arm that vehicle is aligned within bounds
@@ -274,31 +278,29 @@ async def remote_worker(command_queue, status_queue, state_queue):
                 time.sleep(7)
                 status_queue.put("DOCKING_COMPLETE")
                 status_queue.put("CHARGING")
-                awaitingCommand("DISCONNECT",command_queue)
+                awaitingCommand("DISCONNECT",command_queue, state_queue)
                 message = "disconnect"
                 data = message.encode()
                 await client.write_gatt_char(CHAR_UUID, data, response=True)
                 
                 status_queue.put("DISCONNECTION_START")
                 time.sleep(1)
-
                 status_queue.put("ARM_RETRACTING")
                 # Give command to approach
-                state_queue.put("DISCONNECT")
                 state_queue.put("DOCKING")
                 time.sleep(4)
                 state_queue.put("STANDBY")
                 status_queue.put("DISCONNECT_COMPLETE")
-                awaitingCommand("FINISH",command_queue)
+                awaitingCommand("FINISH",command_queue, state_queue)
                
 
     except Exception:
         print("Exception while connecting/connected", Exception)
 
 def run_async(command_queue,status_queue,state_queue):
-    asyncio.run(remote_worker(command_queue,status_queue, state_queue))
+    asyncio.run(remote_worker(command_queue,status_queue, state_queue,observer_queue))
 
-def state_worker(state_queue, observation_queue):
+def state_worker(state_queue, observation_queue, status_queue):
     state_queue.put("STATE_QUEUE_START")
     observation_queue.put("OBSERVATION_START")
 
@@ -317,21 +319,31 @@ def state_worker(state_queue, observation_queue):
 
         if msg == "CHARGING":
             relay_on()
-            charging()
+
+            voltage, current_ma, power_mw = soc_tracker.update()
+            is_charging = current_ma < -5.0
+            is_idle     = abs(current_ma) <= 5.0
+            state       = "CHARGING" if is_charging else ("IDLE" if is_idle else "DISCHARGING")
+            # if charging
+            if state == "CHARGING":
+                ttf = soc_tracker.time_to_full
+                observer_queue.put(f"SoC: {soc_tracker.soc_pct}%, ETA: {soc_tracker.fmt_minutes(ttf)}")
+                charging(soc_tracker, current_ma, status_queue)
 
         if msg == "DISCONNECT":
+            relay_off()
             disconnect()
         time.sleep(1)
 
 state_thread = threading.Thread(
     target=state_worker,
-    args=(state_queue, observer_queue),
+    args=(state_queue, observer_queue, status_queue),
     daemon=True
 )
 
 arm_thread = threading.Thread(
     target=run_async,
-    args=(command_queue,status_queue,state_queue),
+    args=(command_queue,status_queue,observer_queue),
     daemon=True
 )
 
