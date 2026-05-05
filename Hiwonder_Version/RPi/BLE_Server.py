@@ -32,6 +32,9 @@ GPIO.setup(DOCKING_PIN, GPIO.OUT)
 GPIO.setup(CHARGING_PIN, GPIO.OUT)
 GPIO.setup(CONNECTED_PIN, GPIO.OUT)
 
+def notification_handler(sender, data):
+    print("Received from ESP32:", data.decode())
+
 def charging_in_progress(tracker, current, status_queue):
     print("Now charging..")
     GPIO.output(CONNECTED_PIN,GPIO.HIGH)
@@ -205,6 +208,7 @@ async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
         ) as client:
             
             while restart:
+                await client.start_notify(CHAR_UUID, notification_handler)
                 while True:
                     
                     # wait for command CAPTURE from gui

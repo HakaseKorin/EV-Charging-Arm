@@ -5,6 +5,8 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <string>
+#include "IIC.hpp"
+#include "Ultrasound.hpp"
 
 #define SERVICE_UUID        "12345678-1234-5678-1234-56789abcdef0"
 #define CHARACTERISTIC_UUID "12345678-1234-5678-1234-56789abcdef1"
@@ -94,7 +96,9 @@ void setup() {
 
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(
     CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_READ
+    BLECharacteristic::PROPERTY_WRITE | 
+    BLECharacteristic::PROPERTY_READ | 
+    BLECharacteristic:PROPERTY_NOTIFY
   );
 
   pCharacteristic->setCallbacks(new MyCallbacks());
