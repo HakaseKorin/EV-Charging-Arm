@@ -61,12 +61,10 @@ def charging(tracker, current, status_queue):
 
     charging_in_progress(tracker, current, status_queue)
 
-def awaitingCommand(command, command_queue, state_queue):
+def awaitingCommand(command, command_queue):
     while True:
-        #if command_queue.get() == "DISCONNECT":
-        #    state_queue.put("DISCONNECT")
-        #    break
-        if command_queue.get() == command:
+        msg = command_queue.get()
+        if msg == command:
             break
 
 async def scan_and_connect():
@@ -213,7 +211,7 @@ async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
                     # wait for command CAPTURE from gui
                     status_queue.put("SYSTEM_READY")
                     state_queue.put("STANDBY")
-                    awaitingCommand("CAPTURE", command_queue, state_queue)
+                    awaitingCommand("CAPTURE", command_queue)
                     
                     standby()
                     camera.take_photo()
@@ -247,7 +245,7 @@ async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
                     camera.locate_socket()
                     #status_queue.put("SHOW_IMAGE")
 
-                    awaitingCommand("RETRY", command_queue, state_queue)
+                    awaitingCommand("RETRY", command_queue)
                 while True:
                     
                     # Tells arm that vehicle is aligned within bounds
@@ -278,7 +276,7 @@ async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
                 time.sleep(7)
                 status_queue.put("DOCKING_COMPLETE")
                 status_queue.put("CHARGING")
-                awaitingCommand("DISCONNECT",command_queue, state_queue)
+                awaitingCommand("DISCONNECT",command_queue)
                 message = "disconnect"
                 data = message.encode()
                 await client.write_gatt_char(CHAR_UUID, data, response=True)
@@ -291,7 +289,7 @@ async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
                 time.sleep(4)
                 state_queue.put("STANDBY")
                 status_queue.put("DISCONNECT_COMPLETE")
-                awaitingCommand("FINISH",command_queue, state_queue)
+                awaitingCommand("FINISH",command_queue)
                
 
     except Exception:
