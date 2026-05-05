@@ -296,21 +296,20 @@ def state_worker(state_queue, observation_queue):
     state_queue.put("STATE_QUEUE_START")
     observation_queue.put("OBSERVATION_START")
     while True:
-        while not state_queue.empty():
-            msg = state_queue.get()
-            print(msg)
+        msg = state_queue.get()
+        print(msg)
 
-            if msg == "STANDBY":
-                standby()
+        if msg == "STANDBY":
+            standby()
 
-            if msg == "DOCKING":
-                docking()
+        if msg == "DOCKING":
+            docking()
 
-            if msg == "CHARGING":
-                charging()
+        if msg == "CHARGING":
+            charging()
 
-            if msg == "DISCONNECT":
-                disconnect()
+        if msg == "DISCONNECT":
+            disconnect()
         time.sleep(1)
 
 state_thread = threading.Thread(
