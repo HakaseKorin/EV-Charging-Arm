@@ -54,7 +54,7 @@ class ControllerGui:
             text="----",
             font=("Arial", 10)
         )
-        self.__status.pack(pady=10)
+        self.__observer.pack(pady=10)
 
         self.update_gui()
     
@@ -103,6 +103,7 @@ class ControllerGui:
         while not self.__status_queue.empty():
         #while True:
             msg = self.__status_queue.get()
+            observation = self.__observer_queue.get()
             self.__status.config(text=msg)
             print(msg)
             
@@ -141,6 +142,10 @@ class ControllerGui:
                 )
             if msg == "SHOW_IMAGE":
                 self.update_image("updated.jpg")
+
+            if observation:
+                self.__observer.config(text=observation)
+                observation = None
 
         self.__root.after(100,self.update_gui)
             
