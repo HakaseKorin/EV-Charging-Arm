@@ -10,7 +10,7 @@ class ControllerGui:
         self.__status_queue = status_queue
         self.__observer_queue = observer_queue
         self.__root.title("Robot Controllor GUI")
-        self.__root.geometry("300x200")
+        self.__root.geometry("300x400")
         self.__img =  Image.open("no_display.png")
         self.__img.resize((50,50))
         self.__tkimage = ImageTk.PhotoImage(self.__img)
