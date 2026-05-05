@@ -252,8 +252,7 @@ class SoCTracker:
     # Display
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def fmt_minutes(minutes):
+    def fmt_minutes(self,minutes):
         """Format minutes as 'Xh Ym' or 'Ym'."""
         if minutes is None:
             return "--"
@@ -304,7 +303,7 @@ class SoCTracker:
             row(f"  Current     :  {current_ma:+8.1f} mA"),
             row(f"  Power       :  {power_mw:8.1f} mW"),
             row(""),
-            row(f"  Time to empty : {self._fmt_minutes(tte):<12}  Time to full : {self._fmt_minutes(ttf)}"),
+            row(f"  Time to empty : {self.fmt_minutes(tte):<12}  Time to full : {self.fmt_minutes(ttf)}"),
             f"└{'─' * (W + 2)}┘",
         ]
 
