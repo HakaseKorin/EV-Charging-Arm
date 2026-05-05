@@ -12,8 +12,7 @@ try:
         state       = "CHARGING" if is_charging else ("IDLE" if is_idle else "DISCHARGING")
 
         ttf = soc_tracker.time_to_full
-        eta = soc_tracker.fmt_minutes(ttf)
-        print(f"SoC: {soc_tracker.soc_pct}%, ETA: {eta}")
+        print(f"SoC: {soc_tracker.soc_pct}%, ETA: {ttf}")
 finally:
     relay_off()
     
