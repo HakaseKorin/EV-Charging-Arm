@@ -57,11 +57,13 @@ def voltage_to_soc(voltage):
 last_time = time.time()
 soc = 100.0  # start assumption
 
+print("Relay ON")
+GPIO.output(RELAY_PIN, GPIO.HIGH)  # flip if inverted
+
 try:
     while True:
         # --- Toggle relay ---
-        print("Relay ON")
-        GPIO.output(RELAY_PIN, GPIO.HIGH)  # flip if inverted
+
         time.sleep(2)
 
         # --- Read INA219 ---
@@ -93,12 +95,10 @@ try:
 
         time.sleep(2)
 
-        print("Relay OFF")
-        GPIO.output(RELAY_PIN, GPIO.LOW)
-        time.sleep(2)
-
 except KeyboardInterrupt:
     print("Stopping...")
 
 finally:
+    print("Relay OFF")
+    GPIO.output(RELAY_PIN, GPIO.LOW)
     GPIO.cleanup()
