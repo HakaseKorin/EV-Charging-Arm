@@ -300,6 +300,8 @@ def state_worker(state_queue, observer_queue, status_queue):
     state_queue.put("STATE_QUEUE_START")
     observer_queue.put("OBSERVATION_START")
 
+    currently_charging = False
+
     battery_sensor = BatterySensor()
     soc_tracker = SoCTracker(battery_sensor)
 
@@ -322,11 +324,15 @@ def state_worker(state_queue, observer_queue, status_queue):
             state       = "CHARGING" if is_charging else ("IDLE" if is_idle else "DISCHARGING")
             # if charging
             if state == "CHARGING":
-                ttf = soc_tracker.time_to_full
-                observer_queue.put(f"SoC: {soc_tracker.soc_pct}%, ETA: {soc_tracker.fmt_minutes(ttf)}")
-                charging(soc_tracker, current_ma, status_queue)
+                currently_charging = True
+        
+        if currently_charging:
+            ttf = soc_tracker.time_to_full
+            observer_queue.put(f"SoC: {soc_tracker.soc_pct}%, ETA: {soc_tracker.fmt_minutes(ttf)}")
+            charging(soc_tracker, current_ma, status_queue)
 
         if msg == "DISCONNECT":
+            currently_charging = False
             relay_off()
             disconnect()
         time.sleep(1)

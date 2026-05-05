@@ -3,11 +3,12 @@ from time import sleep
 from PIL import Image, ImageTk
 
 class ControllerGui:
-    def __init__(self, command_queue, status_queue):
+    def __init__(self, command_queue, status_queue, observer_queue):
         # Creates main window
         self.__root = tk.Tk()
         self.__command_queue = command_queue
         self.__status_queue = status_queue
+        self.__observer_queue = observer_queue
         self.__root.title("Robot Controllor GUI")
         self.__root.geometry("300x200")
         self.__img =  Image.open("no_display.png")
@@ -44,6 +45,13 @@ class ControllerGui:
         self.__status = tk.Label(
             self.__root,
             text="STANDBY",
+            font=("Arial", 10)
+        )
+        self.__status.pack(pady=10)
+
+        self.__observer = tk.Label(
+            self.__root,
+            text="----",
             font=("Arial", 10)
         )
         self.__status.pack(pady=10)
