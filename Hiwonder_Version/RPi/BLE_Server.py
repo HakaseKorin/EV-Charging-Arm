@@ -259,7 +259,6 @@ async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
                     if(vert_result == 0):
                         print("Arm within tolerances, beginning approach..")
                         status_queue.put("STARTING_APPROACH")
-                        state_queue.put("DOCKING")
                         break
                     if(vert_result > 0):
                         # adjust up
@@ -295,12 +294,12 @@ async def remote_worker(command_queue, status_queue,state_queue,observer_queue):
     except Exception:
         print("Exception while connecting/connected", Exception)
 
-def run_async(command_queue,status_queue,state_queue):
+def run_async(command_queue,status_queue,state_queue,observer_queue):
     asyncio.run(remote_worker(command_queue,status_queue, state_queue,observer_queue))
 
-def state_worker(state_queue, observation_queue, status_queue):
+def state_worker(state_queue, observer_queue, status_queue):
     state_queue.put("STATE_QUEUE_START")
-    observation_queue.put("OBSERVATION_START")
+    observer_queue.put("OBSERVATION_START")
 
     battery_sensor = BatterySensor()
     soc_tracker = SoCTracker(battery_sensor)
