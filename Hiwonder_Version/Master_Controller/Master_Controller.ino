@@ -247,7 +247,7 @@ void loop() {
   while( true ) {
     if ( correction == "aligned" ) { break; }
     
-    arm.coordinate_set(10,0,8,0,-90,90,1000);
+    arm.coordinate_set(10,0,9,0,-90,90,1000);
     delay(2000);
     Serial.println(correction);
     Serial.println("waiting on alignment..");
@@ -306,7 +306,7 @@ void loop() {
     arm.coordinate_set(15,0,10+offset,0,-90,90,1000);
     delay(1000);
 
-    arm.coordinate_set(10,0,8,0,-90,90,1000);
+    arm.coordinate_set(10,0,9,0,-90,90,1000);
     delay(1000);
 
     Serial.println("disconnect complete..");
