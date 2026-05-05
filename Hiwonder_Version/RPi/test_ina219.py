@@ -11,9 +11,18 @@ BATTERY_CAPACITY_AH = 2.6
 MAX_VOLTAGE = 12.60
 MIN_VOLTAGE = 9.60
 
+MIN_CHARGE_CURRENT_A = 0.05  # below this, ETA unreliable
+
+# Relay logic (flip if needed)
+RELAY_ON = GPIO.HIGH
+RELAY_OFF = GPIO.LOW
+
 # ---------------- GPIO SETUP ----------------
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(RELAY_PIN, GPIO.OUT)
+
+# Set relay state ONCE (no toggling loop)
+GPIO.output(RELAY_PIN, RELAY_ON)
 
 # ---------------- INA219 SETUP ----------------
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -53,52 +62,73 @@ def voltage_to_soc(voltage):
 
     return 0.0
 
+# ---------------- ETA FORMAT ----------------
+def format_eta(hours):
+    if hours is None:
+        return "N/A"
+    h = int(hours)
+    m = int((hours - h) * 60)
+    return f"{h}h {m}m"
+
 # ---------------- MAIN LOOP ----------------
 last_time = time.time()
-soc = 100.0  # start assumption
-
-print("Relay ON")
-GPIO.output(RELAY_PIN, GPIO.HIGH)  # flip if inverted
+soc = 100.0
 
 try:
     while True:
-        # --- Toggle relay ---
-
-        time.sleep(2)
-
-        # --- Read INA219 ---
+        # --- Read sensor ---
         voltage = ina219.bus_voltage
         current_mA = ina219.current
         current_A = current_mA / 1000.0
         power = ina219.power
 
+        # --- Time delta ---
         now = time.time()
         dt_hours = (now - last_time) / 3600.0
         last_time = now
 
-        # --- Coulomb counting (primary SoC tracking) ---
+        # --- Coulomb counting ---
         soc -= (current_A * dt_hours / BATTERY_CAPACITY_AH) * 100
 
-        # --- Voltage correction when idle ---
-        if abs(current_mA) < 50:  # near rest
+        # --- Voltage correction when near idle ---
+        if abs(current_A) < MIN_CHARGE_CURRENT_A:
             soc = voltage_to_soc(voltage)
 
-        # Clamp
         soc = max(0, min(100, soc))
 
-        # --- Print data ---
+        # ---------------- ETA CALCULATION ----------------
+        eta_hours = None
+
+        if abs(current_A) > MIN_CHARGE_CURRENT_A:
+            if current_A > 0:
+                # Discharging
+                eta_hours = (soc / 100.0) * BATTERY_CAPACITY_AH / current_A
+                mode = "Discharging"
+            else:
+                # Charging
+                eta_hours = ((100 - soc) / 100.0) * BATTERY_CAPACITY_AH / abs(current_A)
+                mode = "Charging"
+        else:
+            mode = "Idle"
+
+        # --- Low voltage safety ---
+        if voltage < MIN_VOLTAGE:
+            print("⚠️ Low battery! Turning relay OFF.")
+            GPIO.output(RELAY_PIN, RELAY_OFF)
+
+        # --- Output ---
         print(f"Voltage: {voltage:.2f} V")
         print(f"Current: {current_mA:.2f} mA")
         print(f"Power:   {power:.2f} mW")
         print(f"SoC:     {soc:.1f}%")
+        print(f"Mode:    {mode}")
+        print(f"ETA:     {format_eta(eta_hours)}")
         print("-" * 40)
 
-        time.sleep(2)
+        time.sleep(1)
 
 except KeyboardInterrupt:
     print("Stopping...")
 
 finally:
-    print("Relay OFF")
-    GPIO.output(RELAY_PIN, GPIO.LOW)
     GPIO.cleanup()
