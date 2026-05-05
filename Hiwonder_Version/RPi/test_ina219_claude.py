@@ -90,7 +90,7 @@ class BatterySensor:
             self.sensor.gain = Gain.DIV_8_320MV
             self.sensor.bus_adc_resolution = ADCResolution.ADCRES_12BIT_32S
             self.sensor.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S
-            self.sensor.mode = Mode.SANDBURST
+            self.sensor.mode = Mode.SANDBVOLT_TRIGGERED
             print("INA219 sensor initialised on I2C bus.")
         else:
             self._sim_soc = 75.0
