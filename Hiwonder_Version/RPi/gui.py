@@ -141,6 +141,7 @@ class ControllerGui:
                 text="Restart",
                 command=self.finish
             )
+            self.__observer.config(text="----")
         if msg == "SHOW_IMAGE":
             self.update_image("updated.jpg")
 
