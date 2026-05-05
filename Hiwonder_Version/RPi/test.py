@@ -11,7 +11,7 @@ try:
         is_idle     = abs(current_ma) <= 5.0
         state       = "CHARGING" if is_charging else ("IDLE" if is_idle else "DISCHARGING")
 
-        ttf = soc_tracker.time_to_full
+        ttf = soc_tracker.time_to_full()
         ttf_formatted = soc_tracker.fmt_minutes(ttf)
         print(f"SoC: {soc_tracker.soc_pct:5.1f}%, ETA: {ttf_formatted}")
 finally:
