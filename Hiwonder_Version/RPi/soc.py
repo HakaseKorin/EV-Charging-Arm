@@ -334,6 +334,8 @@ def relay_on():
 def relay_off():
     """De-energise the relay and clean up the GPIO pin."""
     if GPIO_AVAILABLE:
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(RELAY_PIN, GPIO.OUT)
         GPIO.output(RELAY_PIN, GPIO.LOW)
         GPIO.cleanup(RELAY_PIN)
         print(f"Relay OFF (GPIO{RELAY_PIN})")
